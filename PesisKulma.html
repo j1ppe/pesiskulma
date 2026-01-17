@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PesisKulma</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2390EE90'/><circle cx='50' cy='50' r='45' fill='none' stroke='%23333' stroke-width='2'/><path d='M 20,50 Q 50,20 80,50' fill='none' stroke='%23333' stroke-width='1.5'/><path d='M 20,50 Q 50,80 80,50' fill='none' stroke='%23333' stroke-width='1.5'/><path d='M 50,20 Q 20,50 50,80' fill='none' stroke='%23333' stroke-width='1.5'/><path d='M 50,20 Q 80,50 50,80' fill='none' stroke='%23333' stroke-width='1.5'/></svg>"
+    />
+    <style>
+      body {
+        font-family: sans-serif;
+        background: linear-gradient(
+          135deg,
+          #1a1a2e 0%,
+          #16213e 25%,
+          #0f3460 50%,
+          #533483 75%,
+          #e94560 100%
+        );
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        text-align: center;
+        margin: 0;
+        padding: 10px;
+        min-height: 100vh;
+        position: relative;
+      }
+
+      @keyframes gradientShift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background:
+          radial-gradient(
+            circle at 20% 50%,
+            rgba(255, 0, 132, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 80%,
+            rgba(0, 255, 255, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 40% 20%,
+            rgba(138, 43, 226, 0.12) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      h2 {
+        color: #ffffff;
+        text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        position: relative;
+        z-index: 1;
+      }
+
+      canvas {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.3),
+          0 0 60px rgba(233, 69, 96, 0.2);
+        display: block;
+        margin: 20px auto;
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .field-selector-container {
+        margin: 20px auto;
+        display: inline-block;
+        position: relative;
+        z-index: 1;
+      }
+
+      .field-selector {
+        display: inline-flex;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 4px;
+        gap: 4px;
+      }
+
+      .field-option {
+        padding: 10px 30px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+      }
+
+      .field-option:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .field-option.active {
+        background: rgba(233, 69, 96, 0.8);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+      }
+
+      .net-distance-container {
+        margin: 10px auto;
+        display: inline-block;
+        position: relative;
+        z-index: 1;
+      }
+
+      .net-distance-input {
+        padding: 8px 16px;
+        font-size: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        color: #ffffff;
+        border-radius: 6px;
+        width: 150px;
+        text-align: center;
+      }
+
+      .net-distance-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .net-distance-input:focus {
+        outline: none;
+        border-color: rgba(233, 69, 96, 0.8);
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+      }
+
+      .net-distance-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      footer {
+        text-align: center;
+        position: fixed;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        z-index: 1;
+      }
+
+      footer p {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="field-selector-container">
+      <div class="field-selector">
+        <button class="field-option active" data-field="women">Naiset</button>
+        <button class="field-option" data-field="men">Miehet</button>
+      </div>
+    </div>
+
+    <div class="net-distance-container">
+      <label class="net-distance-label"
+        >Lyöntiverkon etäisyys syöttölautasen etureunasta (cm):</label
+      >
+      <input
+        type="text"
+        id="netDistance"
+        class="net-distance-input"
+        placeholder="esim. 500"
+        inputmode="decimal"
+        pattern="[0-9.]*"
+      />
+    </div>
+
+    <canvas id="fieldCanvas"></canvas>
+
+    <script>
+      /* ===============================
+      KENTTÄPROFIILIT
+      =============================== */
+
+      const fieldProfileMen = {
+        id: "Miehet",
+        homePlate: {
+          radius: 0.3,
+          centerToHomeLine: 1.3,
+        },
+        battingSector: {
+          originOffsetY: -0.569,
+          leftAngleDeg: -32.0,
+          rightAngleDeg: 32.0,
+        },
+        diagonalLines: {
+          lengthFromHomeLine: 32.0,
+        },
+        backBoundary: {
+          distanceFromHomeLine: 96.0,
+        },
+        firstBaseCanvasOffset: {
+          distanceFromHomeLine: 20.0,
+        },
+        secondBaseCanvasOffset: {
+          distanceFromRightAngle: 6.5,
+        },
+        thirdBaseCanvasOffset: {
+          distanceFromLeftAngle: 6.5,
+        },
+        baseRadius: 3.0,
+      };
+
+      const fieldProfileWomen = {
+        id: "Naiset",
+        homePlate: {
+          radius: 0.3,
+          centerToHomeLine: 1.3,
+        },
+        battingSector: {
+          originOffsetY: -0.569,
+          leftAngleDeg: -32.0,
+          rightAngleDeg: 32.0,
+        },
+        diagonalLines: {
+          lengthFromHomeLine: 27.162,
+        },
+        backBoundary: {
+          distanceFromHomeLine: 82.0,
+        },
+        firstBaseCanvasOffset: {
+          distanceFromHomeLine: 17.5,
+        },
+        secondBaseCanvasOffset: {
+          distanceFromRightAngle: 4.839,
+        },
+        thirdBaseCanvasOffset: {
+          distanceFromLeftAngle: 4.839,
+        },
+        baseRadius: 2.5,
+      };
+
+      /* ===============================
+      CANVAS & SKAALAUS
+      =============================== */
+
+      // Valittu kenttäprofiili (oletuksena naiset)
+      let fieldProfile = fieldProfileWomen;
+
+      // Pallon sijainti kentällä (null = ei palloa)
+      let ballPosition = null;
+
+      const canvas = document.getElementById("fieldCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Dynaaminen canvasin koko
+      let SCALE = 5;
+      let ORIGIN = { x: 0, y: 0 };
+
+      function resizeCanvas() {
+        const maxWidth = Math.min(window.innerWidth - 40, 900);
+        const fieldWidth = 60;
+
+        const fieldHeight =
+          fieldProfile.homePlate.centerToHomeLine +
+          fieldProfile.backBoundary.distanceFromHomeLine +
+          6;
+
+        SCALE = maxWidth / fieldWidth;
+
+        canvas.width = maxWidth;
+        canvas.height = fieldHeight * SCALE;
+
+        ORIGIN = {
+          x: canvas.width / 2,
+          y: canvas.height - 30,
+        };
+
+        drawField();
+      }
+
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      function toCanvas(p) {
+        return {
+          x: ORIGIN.x + p.x * SCALE,
+          y: ORIGIN.y - p.y * SCALE,
+        };
+      }
+
+      /* ==============================
+      GEOMETRIA
+      ============================== */
+
+      function direction(angleDeg) {
+        const rad = (angleDeg * Math.PI) / 180;
+        return {
+          x: Math.sin(rad),
+          y: Math.cos(rad),
+        };
+      }
+
+      function intersectionWithHomeLine(dir, sectorOriginY) {
+        const yHome = fieldProfile.homePlate.centerToHomeLine;
+        const t = (yHome - sectorOriginY) / dir.y;
+        return {
+          x: dir.x * t,
+          y: yHome,
+        };
+      }
+
+      function formatDistance(distanceM) {
+        const distanceCm = Math.round(distanceM * 100);
+        return distanceCm > 99
+          ? distanceM.toFixed(2) + " m"
+          : distanceCm + " cm";
+      }
+
+      /* ===============================
+      PIIRTO
+      =============================== */
+
+      function drawField() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const sectorOriginY = fieldProfile.battingSector.originOffsetY;
+
+        const leftDir = direction(fieldProfile.battingSector.leftAngleDeg);
+        const rightDir = direction(fieldProfile.battingSector.rightAngleDeg);
+
+        const homeLeft = intersectionWithHomeLine(leftDir, sectorOriginY);
+        const homeRight = intersectionWithHomeLine(rightDir, sectorOriginY);
+
+        const diagonalY =
+          homeLeft.y + fieldProfile.diagonalLines.lengthFromHomeLine;
+
+        const diagonalLeftEnd = {
+          x:
+            homeLeft.x +
+            (fieldProfile.diagonalLines.lengthFromHomeLine * leftDir.x) /
+              leftDir.y,
+          y: diagonalY,
+        };
+
+        const diagonalRightEnd = {
+          x:
+            homeRight.x +
+            (fieldProfile.diagonalLines.lengthFromHomeLine * rightDir.x) /
+              rightDir.y,
+          y: diagonalY,
+        };
+
+        const backY =
+          fieldProfile.homePlate.centerToHomeLine +
+          fieldProfile.backBoundary.distanceFromHomeLine;
+
+        // Syöttölautanen
+        const plate = toCanvas({ x: 0, y: 0 });
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.arc(
+          plate.x,
+          plate.y,
+          fieldProfile.homePlate.radius * SCALE,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 2;
+
+        // Kotipesän poikkiviiva
+        drawLine(homeLeft, homeRight);
+
+        // Viistot rajat
+        drawLine(homeLeft, diagonalLeftEnd);
+        drawLine(homeRight, diagonalRightEnd);
+
+        // Pystysivurajat
+        const leftVerticalEnd = { x: diagonalLeftEnd.x, y: backY };
+        const rightVerticalEnd = { x: diagonalRightEnd.x, y: backY };
+
+        drawLine(diagonalLeftEnd, leftVerticalEnd);
+        drawLine(diagonalRightEnd, rightVerticalEnd);
+
+        // Takaraja
+        drawLine(leftVerticalEnd, rightVerticalEnd);
+
+        // ykköspesä
+        const firstBaseCenter = {
+          x:
+            homeLeft.x +
+            leftDir.x * fieldProfile.firstBaseCanvasOffset.distanceFromHomeLine,
+          y:
+            homeLeft.y +
+            leftDir.y * fieldProfile.firstBaseCanvasOffset.distanceFromHomeLine,
+        };
+        const firstBaseCanvas = toCanvas(firstBaseCenter);
+
+        // kakkospesä
+        const secondBaseCenter = {
+          x: diagonalRightEnd.x,
+          y:
+            diagonalRightEnd.y +
+            fieldProfile.secondBaseCanvasOffset.distanceFromRightAngle,
+        };
+        const secondBaseCanvas = toCanvas(secondBaseCenter);
+
+        // Lasketaan kulma ykköspesästä kakkospesään (canvas-koordinaateissa)
+        const angleToSecond = Math.atan2(
+          secondBaseCanvas.y - firstBaseCanvas.y,
+          secondBaseCanvas.x - firstBaseCanvas.x,
+        );
+
+        // Ykköspesä: piirretään vain viivan yläpuolinen osa
+        // Rajaviivan kulma canvas-koordinaateissa
+        const leftLineAngle = Math.atan2(-leftDir.y, leftDir.x);
+        ctx.beginPath();
+        ctx.moveTo(firstBaseCanvas.x, firstBaseCanvas.y);
+        ctx.arc(
+          firstBaseCanvas.x,
+          firstBaseCanvas.y,
+          fieldProfile.baseRadius * SCALE,
+          leftLineAngle,
+          angleToSecond,
+        );
+        ctx.lineTo(firstBaseCanvas.x, firstBaseCanvas.y);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(
+          secondBaseCanvas.x,
+          secondBaseCanvas.y,
+          fieldProfile.baseRadius * SCALE,
+          Math.PI / 2,
+          Math.PI * 1.5,
+        );
+        ctx.fill();
+
+        // kolmospesä
+        const thirdBaseCenter = {
+          x: diagonalLeftEnd.x,
+          y:
+            diagonalLeftEnd.y +
+            fieldProfile.thirdBaseCanvasOffset.distanceFromLeftAngle,
+        };
+        const thirdBaseCanvas = toCanvas(thirdBaseCenter);
+
+        ctx.beginPath();
+        ctx.arc(
+          thirdBaseCanvas.x,
+          thirdBaseCanvas.y,
+          fieldProfile.baseRadius * SCALE,
+          -Math.PI / 2,
+          Math.PI / 2,
+        );
+        ctx.fill();
+
+        // Viiva kakkospesän ja kolmospesän välille
+        drawLine(secondBaseCenter, thirdBaseCenter);
+
+        // Viiva ykköspesästä kakkospesään
+        drawLine(firstBaseCenter, secondBaseCenter);
+
+        // Lyöntiverkko (jos määritelty)
+        const netDistanceInput = document.getElementById("netDistance");
+        const netDistanceCm = parseFloat(netDistanceInput.value);
+        if (!isNaN(netDistanceCm) && netDistanceCm > 0) {
+          const netDistanceM = netDistanceCm / 100;
+          const netY = 0.3 + netDistanceM; // Syöttölautasen etureuna + etäisyys
+
+          // Lasketaan kentän leveys kyseisessä kohdassa
+          let netLeftX, netRightX;
+
+          if (netY <= homeLeft.y) {
+            // Lyöntisektorissa - lasketaan viivan leikkauspiste
+            const tLeft = (netY - sectorOriginY) / leftDir.y;
+            const tRight = (netY - sectorOriginY) / rightDir.y;
+            netLeftX = leftDir.x * tLeft;
+            netRightX = rightDir.x * tRight;
+          } else if (netY <= diagonalLeftEnd.y) {
+            // Diagonaalisilla viivoilla
+            const tLeft = (netY - homeLeft.y) / leftDir.y;
+            const tRight = (netY - homeRight.y) / rightDir.y;
+            netLeftX = homeLeft.x + leftDir.x * tLeft;
+            netRightX = homeRight.x + rightDir.x * tRight;
+          } else {
+            // Pystysuorilla viivoilla
+            netLeftX = diagonalLeftEnd.x;
+            netRightX = diagonalRightEnd.x;
+          }
+
+          const netLeft = { x: netLeftX, y: netY };
+          const netRight = { x: netRightX, y: netY };
+
+          // Piirretään ristikkokuvio viivan kohdalle
+          const netLeftCanvas = toCanvas(netLeft);
+          const netRightCanvas = toCanvas(netRight);
+
+          ctx.save();
+
+          // Luodaan pattern canvas (pienempi tiiviimpi kuvio)
+          const patternCanvas = document.createElement("canvas");
+          const patternCtx = patternCanvas.getContext("2d");
+          patternCanvas.width = 4;
+          patternCanvas.height = 4;
+
+          // Piirretään ristikkokuvio
+          patternCtx.strokeStyle = "#00aa00";
+          patternCtx.lineWidth = 1;
+
+          // Vinoviivat
+          patternCtx.beginPath();
+          patternCtx.moveTo(0, 0);
+          patternCtx.lineTo(4, 4);
+          patternCtx.moveTo(4, 0);
+          patternCtx.lineTo(0, 4);
+          patternCtx.stroke();
+
+          // Luo pattern
+          const pattern = ctx.createPattern(patternCanvas, "repeat");
+          ctx.fillStyle = pattern;
+
+          // Piirretään 2 pikselin korkuinen alue
+          ctx.fillRect(
+            netLeftCanvas.x,
+            netLeftCanvas.y - 1,
+            netRightCanvas.x - netLeftCanvas.x,
+            2,
+          );
+
+          ctx.restore();
+          ctx.strokeStyle = "#000";
+          ctx.lineWidth = 2;
+        }
+
+        // Piirrä pallo (jos asetettu)
+        if (ballPosition) {
+          // Piirretään katkoviiva syöttölautasesta palloon
+          const homePlateCenter = toCanvas({ x: 0, y: 0 });
+          const ballCenter = toCanvas({ x: ballPosition.x, y: ballPosition.y });
+
+          ctx.save();
+          ctx.strokeStyle = "#ff9999";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([5, 5]); // Katkoviiva: 5 pikseliä viivaa, 5 pikseliä väliä
+
+          // Suora viiva syöttölautasesta palloon
+          ctx.beginPath();
+          ctx.moveTo(homePlateCenter.x, homePlateCenter.y);
+          ctx.lineTo(ballCenter.x, ballCenter.y);
+          ctx.stroke();
+
+          // Pystyviiva syöttölautasesta ylös pallon korkeudelle
+          const verticalPoint = toCanvas({ x: 0, y: ballPosition.y });
+          ctx.beginPath();
+          ctx.moveTo(homePlateCenter.x, homePlateCenter.y);
+          ctx.lineTo(verticalPoint.x, verticalPoint.y);
+          ctx.stroke();
+
+          // Vaakaviiva pystyviivan päästä palloon
+          ctx.beginPath();
+          ctx.moveTo(verticalPoint.x, verticalPoint.y);
+          ctx.lineTo(ballCenter.x, ballCenter.y);
+          ctx.stroke();
+
+          ctx.setLineDash([]); // Palautetaan normaali viiva
+          ctx.restore();
+
+          // Lasketaan etäisyys verkon kohdalla (jos verkko on määritelty)
+          const netDistanceInput = document.getElementById("netDistance");
+          const netDistanceCm = parseFloat(netDistanceInput.value);
+          if (!isNaN(netDistanceCm) && netDistanceCm > 0) {
+            const netDistanceM = netDistanceCm / 100;
+            const netY = 0.3 + netDistanceM;
+
+            // Tarkistetaan että verkko on syöttölautasen ja pallon välissä
+            if (netY <= ballPosition.y && netY > 0) {
+              // Leikkauspiste suoralla viivalla (syöttölautasesta palloon)
+              const directLineX = (netY / ballPosition.y) * ballPosition.x;
+
+              // Leikkauspiste pystyviivalla (aina x = 0)
+              const verticalLineX = 0;
+
+              // Etäisyys näiden kahden pisteen välillä (metreinä)
+              const distanceM = Math.abs(directLineX - verticalLineX);
+
+              // Piirretään etäisyys näytölle verkon kohdalla
+              const midX = (directLineX + verticalLineX) / 2;
+              const labelPos = toCanvas({ x: midX, y: netY });
+
+              ctx.fillStyle = "#ff0000";
+              ctx.font = "bold 14px sans-serif";
+              ctx.textAlign = "center";
+              ctx.textBaseline = "bottom";
+              ctx.fillText(
+                formatDistance(distanceM),
+                labelPos.x,
+                labelPos.y - 5,
+              );
+            }
+          }
+
+          // Näytetään etäisyys pallon tasolla (sivuttaisetäisyys keskiviivasta)
+          const ballSideDistanceM = Math.abs(ballPosition.x);
+          const ballLabelPos = toCanvas({
+            x: ballPosition.x / 2,
+            y: ballPosition.y,
+          });
+
+          // Suora etäisyys kotipesästä palloon
+          const plateDistanceM = Math.sqrt(
+            ballPosition.x * ballPosition.x + ballPosition.y * ballPosition.y,
+          );
+          const plateLabelPos = toCanvas({
+            x: ballPosition.x / 2,
+            y: ballPosition.y / 2,
+          });
+
+          ctx.fillStyle = "#ff0000";
+          ctx.font = "bold 14px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "bottom";
+          ctx.fillText(
+            formatDistance(plateDistanceM),
+            plateLabelPos.x,
+            plateLabelPos.y - 5,
+          );
+
+          // Tarkistetaan onko pallo lähellä takarajaa (80% tai enemmän)
+          const backBoundaryY =
+            fieldProfile.homePlate.centerToHomeLine +
+            fieldProfile.backBoundary.distanceFromHomeLine;
+          const isNearBackBoundary = ballPosition.y >= backBoundaryY * 0.8;
+
+          ctx.textBaseline = isNearBackBoundary ? "top" : "bottom";
+          ctx.fillText(
+            formatDistance(ballSideDistanceM),
+            ballLabelPos.x,
+            isNearBackBoundary ? ballLabelPos.y + 5 : ballLabelPos.y - 5,
+          );
+
+          drawBall(ballPosition.x, ballPosition.y);
+        }
+      }
+
+      function drawBall(x, y) {
+        const pos = toCanvas({ x, y });
+        const radius = 0.6 * SCALE; // Pallon säde noin 60 cm
+
+        // Varjo
+        ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+
+        // Pallo (haalea vihreä)
+        ctx.fillStyle = "#90EE90";
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Reunaviiva
+        ctx.shadowColor = "transparent";
+        ctx.strokeStyle = "#6B8E6B";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Kiilto
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.beginPath();
+        ctx.arc(
+          pos.x - radius * 0.3,
+          pos.y - radius * 0.3,
+          radius * 0.3,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+
+        ctx.shadowColor = "transparent";
+      }
+
+      function drawLine(a, b) {
+        const ca = toCanvas(a);
+        const cb = toCanvas(b);
+        ctx.beginPath();
+        ctx.moveTo(ca.x, ca.y);
+        ctx.lineTo(cb.x, cb.y);
+        ctx.stroke();
+      }
+
+      // Lyöntiverkon etäisyys
+      const netDistanceInput = document.getElementById("netDistance");
+
+      netDistanceInput.addEventListener("input", (e) => {
+        e.target.value = e.target.value.replace(/[^0-9.]/g, "");
+        drawField();
+      });
+
+      canvas.addEventListener("click", handleCanvasClick);
+      canvas.addEventListener("touchend", handleCanvasClick);
+
+      function handleCanvasClick(e) {
+        e.preventDefault();
+
+        // Poistetaan focus input-kentästä ettei näppäimistö pomppaa esiin mobiilissa
+        if (document.activeElement) {
+          document.activeElement.blur();
+        }
+
+        const rect = canvas.getBoundingClientRect();
+        let clientX, clientY;
+
+        if (e.type === "touchend") {
+          const touch = e.changedTouches[0];
+          clientX = touch.clientX;
+          clientY = touch.clientY;
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+
+        const canvasX = clientX - rect.left;
+        const canvasY = clientY - rect.top;
+
+        // Muunna canvas-koordinaatit kenttäkoordinaateiksi
+        const fieldX = (canvasX - ORIGIN.x) / SCALE;
+        const fieldY = -(canvasY - ORIGIN.y) / SCALE;
+
+        ballPosition = { x: fieldX, y: fieldY };
+        drawField();
+      }
+
+      // Kentän valinta
+      const fieldOptions = document.querySelectorAll(".field-option");
+
+      fieldOptions.forEach((button) => {
+        button.addEventListener("click", (e) => {
+          fieldOptions.forEach((btn) => btn.classList.remove("active"));
+
+          e.target.classList.add("active");
+
+          if (e.target.dataset.field === "men") {
+            fieldProfile = fieldProfileMen;
+          } else {
+            fieldProfile = fieldProfileWomen;
+          }
+
+          resizeCanvas();
+        });
+      });
+
+      drawField();
+    </script>
+
+    <footer>
+      <p>PesisKulma - Designed & Built by JiPPE</p>
+    </footer>
+  </body>
+</html>

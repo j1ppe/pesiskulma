@@ -12,26 +12,38 @@
     <script src="assets/js/pesiskulma.js" defer></script>
   </head>
   <body class="page--field">
-    <div class="field-selector-container">
-      <div class="field-selector">
-        <button class="field-option active" data-field="women">Naiset</button>
-        <button class="field-option" data-field="men">Miehet</button>
-      </div>
-    </div>
+    <section class="control-dock">
+      <p class="control-dock__eyebrow">Kenttäasetukset</p>
+      <div class="control-dock__grid">
+        <div class="control-card field-selector-container">
+          <div class="field-selector">
+            <button class="field-option active" data-field="women">
+              Naiset
+            </button>
+            <button class="field-option" data-field="men">Miehet</button>
+          </div>
+        </div>
 
-    <div class="net-distance-container">
-      <label class="net-distance-label"
-        >Lyöntiverkon etäisyys syöttölautasen etureunasta (cm):</label
-      >
-      <input
-        type="text"
-        id="netDistance"
-        class="net-distance-input"
-        placeholder="esim. 500"
-        inputmode="decimal"
-        pattern="[0-9.]*"
-      />
-    </div>
+        <div class="control-card net-distance-container">
+          <div class="net-distance-fields">
+            <label class="net-distance-label" for="netDistance">
+              Lyöntiverkon etäisyys syöttölautasen etureunasta
+            </label>
+            <div class="net-distance-input-shell">
+              <input
+                type="text"
+                id="netDistance"
+                class="net-distance-input"
+                placeholder="esim. 500"
+                inputmode="decimal"
+                pattern="[0-9.]*"
+              />
+              <span class="net-distance-unit" aria-hidden="true">cm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <canvas id="fieldCanvas"></canvas>
 

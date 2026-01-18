@@ -89,16 +89,13 @@
       480,
     );
 
-    const selectorHeight =
-      document.querySelector(".field-selector-container")?.offsetHeight || 0;
-    const netInputHeight =
-      document.querySelector(".net-distance-container")?.offsetHeight || 0;
+    const controlDockHeight =
+      document.querySelector(".control-dock")?.offsetHeight || 0;
     const footerHeight = document.querySelector("footer")?.offsetHeight || 0;
 
     const chromeSpacing = 22;
     const availableHeight =
-      viewportHeight -
-      (selectorHeight + netInputHeight + footerHeight + chromeSpacing);
+      viewportHeight - (controlDockHeight + footerHeight + chromeSpacing);
 
     const horizontalGutter = 12;
     const maxCanvasWidth = Math.max(viewportWidth - horizontalGutter * 2, 220);

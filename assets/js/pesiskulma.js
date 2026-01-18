@@ -74,10 +74,11 @@
 
   function resizeCanvas() {
     const fieldWidth = 60;
+    const topMargin = 1.5; // meters of breathing room above back boundary
     const fieldHeight =
       fieldProfile.homePlate.centerToHomeLine +
       fieldProfile.backBoundary.distanceFromHomeLine +
-      6;
+      topMargin;
 
     const viewportWidth = Math.max(
       window.innerWidth || document.documentElement.clientWidth || 0,
@@ -94,7 +95,7 @@
       document.querySelector(".net-distance-container")?.offsetHeight || 0;
     const footerHeight = document.querySelector("footer")?.offsetHeight || 0;
 
-    const chromeSpacing = 32;
+    const chromeSpacing = 22;
     const availableHeight =
       viewportHeight -
       (selectorHeight + netInputHeight + footerHeight + chromeSpacing);
@@ -102,8 +103,8 @@
     const horizontalGutter = 12;
     const maxCanvasWidth = Math.max(viewportWidth - horizontalGutter * 2, 220);
 
-    const paddingX = Math.max(4, Math.min(12, viewportWidth * 0.01));
-    const paddingY = Math.max(6, Math.min(14, viewportHeight * 0.015));
+    const paddingX = Math.max(4, Math.min(10, viewportWidth * 0.008));
+    const paddingY = Math.max(2, Math.min(8, viewportHeight * 0.008));
 
     const widthScale = (maxCanvasWidth - paddingX * 2) / fieldWidth;
     const heightScaleRaw = (availableHeight - paddingY * 2) / fieldHeight;

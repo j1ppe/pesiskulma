@@ -235,12 +235,14 @@ footer {
 }
 
 body.page--field {
-  padding-bottom: 40px;
+  padding-bottom: 60px;
 }
 
 body.page--field footer {
-  position: static;
-  margin-top: 20px;
+  position: fixed;
+  bottom: 10px;
+  left: 0;
+  right: 0;
 }
 
 footer p {

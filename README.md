@@ -2,7 +2,7 @@
 
 ## Yhteenveto
 
-PesisKulma on selainpohjainen työkalu, joka auttaa pesäpallovalmentajia visualisoimaan lyöntikulmia ja arvioimaan lyöntiverkon etäisyyksiä. Kentän voi vaihtaa miesten ja naisten profiilien välillä, ja pallon sijaintia voi määritellä klikkaamalla kenttää.
+PesisKulma on selainpohjainen työkalu lyöntiharjoitteluun silloin, kun lyödään verkkoon tai pressuun. Se auttaa pesäpallovalmentajia visualisoimaan lyöntikulmia, arvioimaan lyöntiverkon etäisyyksiä ja hahmottamaan lyöntisuunnat. Kentän voi vaihtaa miesten ja naisten profiilien välillä, ja pallon sijaintia voi määritellä klikkaamalla kenttää.
 
 ## Ominaisuudet
 
@@ -21,7 +21,7 @@ PesisKulma on selainpohjainen työkalu, joka auttaa pesäpallovalmentajia visual
 
 ## Overview (English)
 
-PesisKulma is a browser-based visualization tool for Finnish baseball coaches. It lets you compare women’s and men’s field profiles, place the ball on the canvas, and instantly read distances to the pitching plate and net.
+PesisKulma is a browser-based training aid for Finnish baseball coaches who run net or tarp hitting sessions. It lets you compare women’s and men’s field profiles, map intended hitting directions on the canvas, and instantly read distances to the pitching plate and practice net.
 
 ### Features
 

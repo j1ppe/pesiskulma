@@ -75,8 +75,20 @@ h6 {
 }
 
 canvas {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0)),
+    radial-gradient(
+      circle at 20% 25%,
+      rgba(255, 204, 170, 0.35),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 70% 35%,
+      rgba(255, 170, 140, 0.28),
+      transparent 55%
+    ),
+    linear-gradient(180deg, rgba(214, 130, 92, 0.96), rgba(148, 66, 44, 0.98));
+  border: 1px solid rgba(16, 75, 43, 0.4);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
     0 0 60px rgba(233, 69, 96, 0.2);
@@ -89,38 +101,94 @@ canvas {
   z-index: 1;
 }
 
-.field-selector-container {
-  margin: 20px auto;
-  display: inline-block;
+.control-dock {
+  width: min(100%, 960px);
+  margin: 4px auto 2px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(7, 10, 27, 0.4);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.45),
+    0 0 80px rgba(233, 69, 96, 0.18);
+  backdrop-filter: blur(18px);
   position: relative;
   z-index: 1;
-  width: min(100%, 360px);
+  text-align: left;
+  overflow: hidden;
+}
+
+.control-dock::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 18% 20%,
+    rgba(22, 225, 255, 0.25),
+    transparent 35%
+  );
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.control-dock__eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  position: relative;
+}
+
+.control-dock__grid {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.control-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 10px 12px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 12px 30px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(14px);
+}
+
+.field-selector-container {
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  width: 100%;
 }
 
 .field-selector {
   display: inline-flex;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 4px;
-  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
   width: 100%;
   flex-wrap: wrap;
 }
 
 .field-option {
-  padding: 10px 30px;
+  padding: 8px 22px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.8);
   transition: all 0.3s ease;
-  flex: 1 1 140px;
-  min-width: 140px;
+  flex: 1 1 120px;
+  min-width: 120px;
 }
 
 .field-option:hover {
@@ -135,40 +203,131 @@ canvas {
 }
 
 .net-distance-container {
-  margin: 10px auto;
-  display: inline-block;
+  margin: 0;
   position: relative;
   z-index: 1;
-  width: min(100%, 320px);
+  width: 100%;
+}
+.net-distance-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
 }
 
 .net-distance-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.net-distance-input-shell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25),
+    0 0 30px rgba(22, 225, 255, 0.12);
+  transition:
+    border 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.net-distance-input-shell:focus-within {
+  border-color: rgba(22, 225, 255, 0.85);
+  background: rgba(22, 225, 255, 0.08);
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.35),
+    0 0 45px rgba(22, 225, 255, 0.4);
 }
 
 .net-distance-input {
-  padding: 8px 16px;
+  padding: 0;
   font-size: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  border: none;
+  background: transparent;
   color: #ffffff;
-  border-radius: 6px;
-  width: 150px;
+  width: 95px;
   text-align: center;
+  font-weight: 600;
 }
 
 .net-distance-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .net-distance-input:focus {
   outline: none;
-  border-color: rgba(233, 69, 96, 0.8);
-  box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+}
+
+.net-distance-unit {
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+@media (max-width: 640px) {
+  .control-dock {
+    margin: 2px auto;
+    padding: 8px 10px;
+    border-radius: 12px;
+  }
+
+  .control-card {
+    padding: 8px 10px;
+  }
+
+  .field-option {
+    padding: 6px 14px;
+    font-size: 14px;
+    min-width: 90px;
+  }
+
+  .net-distance-fields {
+    gap: 6px;
+  }
+
+  .net-distance-label {
+    letter-spacing: 0.15em;
+  }
+
+  .net-distance-input-shell {
+    padding: 5px 12px;
+    gap: 6px;
+  }
+
+  .net-distance-input {
+    font-size: 15px;
+    width: 80px;
+  }
+}
+
+@media (min-width: 768px) {
+  .net-distance-fields {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 900px) {
+  .control-dock__grid {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .control-card {
+    flex: 1;
+  }
 }
 
 .hero-card {
@@ -246,8 +405,19 @@ body.page--field footer {
 }
 
 footer p {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.6);
   margin: 0;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.footer-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }

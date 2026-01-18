@@ -89,16 +89,13 @@
       480,
     );
 
-    const selectorHeight =
-      document.querySelector(".field-selector-container")?.offsetHeight || 0;
-    const netInputHeight =
-      document.querySelector(".net-distance-container")?.offsetHeight || 0;
+    const controlDockHeight =
+      document.querySelector(".control-dock")?.offsetHeight || 0;
     const footerHeight = document.querySelector("footer")?.offsetHeight || 0;
 
     const chromeSpacing = 22;
     const availableHeight =
-      viewportHeight -
-      (selectorHeight + netInputHeight + footerHeight + chromeSpacing);
+      viewportHeight - (controlDockHeight + footerHeight + chromeSpacing);
 
     const horizontalGutter = 12;
     const maxCanvasWidth = Math.max(viewportWidth - horizontalGutter * 2, 220);
@@ -195,7 +192,7 @@
       fieldProfile.backBoundary.distanceFromHomeLine;
 
     const plate = toCanvas({ x: 0, y: 0 });
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.arc(
       plate.x,
@@ -206,7 +203,7 @@
     );
     ctx.fill();
 
-    ctx.strokeStyle = "#000";
+    ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 2;
 
     drawLine(homeLeft, homeRight);
@@ -309,8 +306,9 @@
         netRightX = diagonalRightEnd.x;
       }
 
-      const netLeft = { x: netLeftX, y: netY };
-      const netRight = { x: netRightX, y: netY };
+      const netExtension = 6;
+      const netLeft = { x: netLeftX - netExtension, y: netY };
+      const netRight = { x: netRightX + netExtension, y: netY };
       const netLeftCanvas = toCanvas(netLeft);
       const netRightCanvas = toCanvas(netRight);
 
@@ -340,7 +338,7 @@
       );
 
       ctx.restore();
-      ctx.strokeStyle = "#000";
+      ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 2;
     }
 
@@ -349,7 +347,7 @@
       const ballCenter = toCanvas({ x: ballPosition.x, y: ballPosition.y });
 
       ctx.save();
-      ctx.strokeStyle = "#ff9999";
+      ctx.strokeStyle = "#16e1ff";
       ctx.lineWidth = 1;
       ctx.setLineDash([5, 5]);
 
@@ -384,7 +382,7 @@
           const midX = (directLineX + verticalLineX) / 2;
           const labelPos = toCanvas({ x: midX, y: netY });
 
-          ctx.fillStyle = "#ff0000";
+          ctx.fillStyle = "#16e1ff";
           ctx.font = "bold 14px sans-serif";
           ctx.textAlign = "center";
           ctx.textBaseline = "bottom";
@@ -406,7 +404,7 @@
         y: ballPosition.y / 2,
       });
 
-      ctx.fillStyle = "#ff0000";
+      ctx.fillStyle = "#16e1ff";
       ctx.font = "bold 14px sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";

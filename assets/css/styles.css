@@ -81,7 +81,7 @@ canvas {
     0 8px 32px rgba(0, 0, 0, 0.3),
     0 0 60px rgba(233, 69, 96, 0.2);
   display: block;
-  margin: 20px auto;
+  margin: 5px auto;
   max-width: 100%;
   height: auto;
   border-radius: 8px;

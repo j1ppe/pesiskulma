@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PesisKenttä</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2390EE90'/><circle cx='50' cy='50' r='45' fill='none' stroke='%23333' stroke-width='2'/><path d='M 20,50 Q 50,20 80,50' fill='none' stroke='%23333' stroke-width='1.5'/><path d='M 20,50 Q 50,80 80,50' fill='none' stroke='%23333' stroke-width='1.5'/><path d='M 50,20 Q 20,50 50,80' fill='none' stroke='%23333' stroke-width='1.5'/><path d='M 50,20 Q 80,50 50,80' fill='none' stroke='%23333' stroke-width='1.5'/></svg>"
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/pesiskentta.js" defer></script>
+    <script src="assets/js/footer.js" defer></script>
+  </head>
+  <body class="page--field page--fullfield">
+    <section class="fullfield-header">
+      <p class="fullfield-eyebrow">Kenttäkartta</p>
+      <h1>Pesäpallokenttä mittakaavassa</h1>
+      <p class="fullfield-copy">
+        Tarkastele koko kentän geometrian ja mittasuhteiden eroja. Vaihda
+        miesten ja naisten profiilien välillä sekä seuraa tärkeimmät mitat
+        yhdellä silmäyksellä.
+      </p>
+      <div class="fullfield-selector">
+        <div class="field-selector">
+          <button class="field-option active" data-fullfield="women">
+            Naiset
+          </button>
+          <button class="field-option" data-fullfield="men">Miehet</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="fullfield-canvas-wrap">
+      <canvas id="fullFieldCanvas"></canvas>
+    </section>
+
+    <section class="fullfield-legend">
+      <h2>Keskeiset mitat</h2>
+      <ul class="fullfield-dimensions">
+        <li>
+          <span>Ykkösväli</span>
+          <strong data-dimension="first">-</strong>
+        </li>
+        <li>
+          <span>Kakkosväli</span>
+          <strong data-dimension="second">-</strong>
+        </li>
+        <li>
+          <span>Kolmosväli</span>
+          <strong data-dimension="third">-</strong>
+        </li>
+        <li>
+          <span>Taka-aita</span>
+          <strong data-dimension="back">-</strong>
+        </li>
+        <li>
+          <span>Diagonaali</span>
+          <strong data-dimension="diagonal">-</strong>
+        </li>
+        <li>
+          <span>Leveys takana</span>
+          <strong data-dimension="width">-</strong>
+        </li>
+      </ul>
+    </section>
+
+    <footer class="site-footer" data-footer></footer>
+  </body>
+</html>

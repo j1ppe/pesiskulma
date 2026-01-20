@@ -10,6 +10,7 @@ PesisKulma on selainpohjainen työkalu lyöntiharjoitteluun silloin, kun lyödä
 - Miesten ja naisten kenttäprofiilit, myöhemmin laajennettavissa muille sarjoille.
 - Lyöntiverkon etäisyyden syöttö ja reaaliaikainen mittanäyttö (cm/metri).
 - Pallon sijainnin mittaukset: suora etäisyys kotipesästä ja sivuttaisetäisyys keskiviivasta.
+- Täysimittainen kenttäkartta (PesisKentta.html), jossa kaikki keskeiset kenttämitat yhdellä näkymällä.
 
 ## Käyttö
 
@@ -29,12 +30,12 @@ PesisKulma is a browser-based training aid for Finnish baseball coaches who run 
 - Separate presets for women’s and men’s fields, designed to support additional tiers later.
 - Net distance input with real-time distance labels in cm/m.
 - Ball placement with automatic center-line and plate distance calculations.
+- Dedicated full-field blueprint (PesisKentta.html) with labelled measurements for both women’s and men’s layouts.
 
 ### Getting Started
 
 1. No backend required—open `index.html` in a modern browser or run a lightweight static server.
-2. Launch the field tool via the landing page.
-3. Use browser devtools if you need to debug or extend the drawing logic (`assets/js/pesiskulma.js`).
+2. Launch either the hitting assistant or the full-field blueprint from the landing page.
 
 ### Usage
 

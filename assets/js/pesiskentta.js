@@ -53,6 +53,7 @@
       distanceFromLeftAngle: 6.5,
     },
     baseRadius: 3.0,
+    baseLineLength: 7.0,
   };
 
   const fieldProfileWomen = {
@@ -92,6 +93,7 @@
       distanceFromLeftAngle: 4.839,
     },
     baseRadius: 2.5,
+    baseLineLength: 7.0,
   };
 
   let fieldProfile = fieldProfileWomen;
@@ -281,6 +283,20 @@
         fieldProfile.thirdBaseCanvasOffset.distanceFromLeftAngle,
     };
 
+    const baseLineLength = fieldProfile.baseLineLength || 5.0;
+    const baseRadius = fieldProfile.baseRadius;
+    const lineHalfWidth = 1 / SCALE;
+    const secondBaseLineY = secondBaseCenter.y - baseRadius + lineHalfWidth;
+    const secondBaseLine = {
+      start: { x: secondBaseCenter.x, y: secondBaseLineY },
+      end: { x: secondBaseCenter.x + baseLineLength, y: secondBaseLineY },
+    };
+    const thirdBaseLineY = thirdBaseCenter.y - baseRadius + lineHalfWidth;
+    const thirdBaseLine = {
+      start: { x: thirdBaseCenter.x, y: thirdBaseLineY },
+      end: { x: thirdBaseCenter.x - baseLineLength, y: thirdBaseLineY },
+    };
+
     const firstInterval =
       fieldProfile.firstBaseCanvasOffset.distanceFromHomeLine;
 
@@ -330,6 +346,8 @@
       firstBaseCenter,
       secondBaseCenter,
       thirdBaseCenter,
+      secondBaseLine,
+      thirdBaseLine,
       measurements,
       basePathSegments: {
         firstToSecond,
@@ -353,6 +371,8 @@
       firstBaseCenter,
       secondBaseCenter,
       thirdBaseCenter,
+      secondBaseLine,
+      thirdBaseLine,
       measurements,
       basePathSegments,
       homeLineSegment,
@@ -475,6 +495,9 @@
       Math.PI / 2,
     );
     ctx.fill();
+
+    drawLine(secondBaseLine.start, secondBaseLine.end);
+    drawLine(thirdBaseLine.start, thirdBaseLine.end);
 
     drawLine(secondBaseCenter, thirdBaseCenter);
     drawLine(firstBaseCenter, secondBaseCenter);

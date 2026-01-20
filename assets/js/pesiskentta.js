@@ -54,6 +54,8 @@
     },
     baseRadius: 3.0,
     baseLineLength: 7.0,
+    homePathFirstLine: 15.5,
+    homePathEndOffset: 6.0,
   };
 
   const fieldProfileWomen = {
@@ -87,13 +89,15 @@
       distanceFromHomeLine: 17.5,
     },
     secondBaseCanvasOffset: {
-      distanceFromRightAngle: 4.839,
+      distanceFromRightAngle: 7.339,
     },
     thirdBaseCanvasOffset: {
-      distanceFromLeftAngle: 4.839,
+      distanceFromLeftAngle: 7.339,
     },
     baseRadius: 2.5,
     baseLineLength: 7.0,
+    homePathFirstLine: 16.0,
+    homePathEndOffset: 6.0,
   };
 
   let fieldProfile = fieldProfileWomen;
@@ -296,6 +300,20 @@
       start: { x: thirdBaseCenter.x, y: thirdBaseLineY },
       end: { x: thirdBaseCenter.x - baseLineLength, y: thirdBaseLineY },
     };
+    const homePathFirstLine = {
+      start: { x: diagonalLeftEnd.x, y: thirdBaseLineY },
+      end: {
+        x: diagonalLeftEnd.x,
+        y: thirdBaseLineY - (fieldProfile.homePathFirstLine || 16),
+      },
+    };
+    const homePathSecondLine = {
+      start: homePathFirstLine.end,
+      end: {
+        x: -(fieldProfile.homePathEndOffset || 6),
+        y: fieldProfile.homePlate.centerToHomeLine,
+      },
+    };
 
     const firstInterval =
       fieldProfile.firstBaseCanvasOffset.distanceFromHomeLine;
@@ -348,6 +366,8 @@
       thirdBaseCenter,
       secondBaseLine,
       thirdBaseLine,
+      homePathFirstLine,
+      homePathSecondLine,
       measurements,
       basePathSegments: {
         firstToSecond,
@@ -373,6 +393,8 @@
       thirdBaseCenter,
       secondBaseLine,
       thirdBaseLine,
+      homePathFirstLine,
+      homePathSecondLine,
       measurements,
       basePathSegments,
       homeLineSegment,
@@ -498,6 +520,8 @@
 
     drawLine(secondBaseLine.start, secondBaseLine.end);
     drawLine(thirdBaseLine.start, thirdBaseLine.end);
+    drawLine(homePathFirstLine.start, homePathFirstLine.end);
+    drawLine(homePathSecondLine.start, homePathSecondLine.end);
 
     drawLine(secondBaseCenter, thirdBaseCenter);
     drawLine(firstBaseCenter, secondBaseCenter);

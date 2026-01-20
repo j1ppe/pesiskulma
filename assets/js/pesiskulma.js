@@ -59,10 +59,10 @@
       distanceFromHomeLine: 17.5,
     },
     secondBaseCanvasOffset: {
-      distanceFromRightAngle: 4.839,
+      distanceFromRightAngle: 7.339,
     },
     thirdBaseCanvasOffset: {
-      distanceFromLeftAngle: 4.839,
+      distanceFromLeftAngle: 7.339,
     },
     baseRadius: 2.5,
   };

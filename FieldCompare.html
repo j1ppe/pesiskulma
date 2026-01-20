@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kenttävertailu - Miehet vs Naiset</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #1a1a2e;
+        color: #fff;
+        font-family: system-ui, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+      }
+      h1 {
+        margin-bottom: 1rem;
+      }
+      .legend {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1rem;
+      }
+      .legend span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend .box {
+        width: 20px;
+        height: 20px;
+        border: 2px solid;
+      }
+      .box.men {
+        border-color: #ffffff;
+      }
+      .box.women {
+        border-color: #ffd700;
+      }
+      canvas {
+        background: #0f0f1a;
+        border: 1px solid #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Kenttävertailu</h1>
+    <div class="legend">
+      <span
+        ><div class="box men"></div>
+        Miehet (valkoinen)</span
+      >
+      <span
+        ><div class="box women"></div>
+        Naiset (keltainen)</span
+      >
+    </div>
+    <canvas id="compareCanvas"></canvas>
+
+    <script>
+      (() => {
+        const canvas = document.getElementById("compareCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const fieldProfileMen = {
+          id: "Miehet",
+          homePlate: {
+            radius: 0.3,
+            centerToHomeLine: 1.3,
+            lineHalfWidth: 7.0,
+          },
+          battingSector: {
+            originOffsetY: -0.569,
+            leftAngleDeg: -32.0,
+            rightAngleDeg: 32.0,
+          },
+          diagonalLines: {
+            lengthFromHomeLine: 32.0,
+          },
+          backBoundary: {
+            distanceFromHomeLine: 96.0,
+            width: 42.0,
+          },
+          frontArc: {
+            innerRadius: 2.5,
+            outerRadius: 2.7,
+          },
+          homeArcs: {
+            innerRadius: 5.0,
+            outerRadius: 7.0,
+          },
+          firstBaseCanvasOffset: {
+            distanceFromHomeLine: 20.0,
+          },
+          secondBaseCanvasOffset: {
+            distanceFromRightAngle: 6.5,
+          },
+          thirdBaseCanvasOffset: {
+            distanceFromLeftAngle: 6.5,
+          },
+          baseRadius: 3.0,
+          baseLineLength: 7.0,
+          homePathFirstLine: 15.5,
+          homePathEndOffset: 6.0,
+        };
+
+        const fieldProfileWomen = {
+          id: "Naiset",
+          homePlate: {
+            radius: 0.3,
+            centerToHomeLine: 1.3,
+            lineHalfWidth: 7.0,
+          },
+          battingSector: {
+            originOffsetY: -0.569,
+            leftAngleDeg: -32.0,
+            rightAngleDeg: 32.0,
+          },
+          diagonalLines: {
+            lengthFromHomeLine: 27.162,
+          },
+          backBoundary: {
+            distanceFromHomeLine: 82.0,
+            width: 36.0,
+          },
+          frontArc: {
+            innerRadius: 2.5,
+            outerRadius: 2.7,
+          },
+          homeArcs: {
+            innerRadius: 5.0,
+            outerRadius: 7.0,
+          },
+          firstBaseCanvasOffset: {
+            distanceFromHomeLine: 17.5,
+          },
+          secondBaseCanvasOffset: {
+            distanceFromRightAngle: 7.339,
+          },
+          thirdBaseCanvasOffset: {
+            distanceFromLeftAngle: 7.339,
+          },
+          baseRadius: 2.5,
+          baseLineLength: 7.0,
+          homePathFirstLine: 16.0,
+          homePathEndOffset: 6.0,
+        };
+
+        const SCALE = 5;
+        const bottomMargin = 8;
+
+        // Use men's field for canvas size (larger)
+        const canvasWidth = fieldProfileMen.backBoundary.width * SCALE + 100;
+        const canvasHeight =
+          (fieldProfileMen.backBoundary.distanceFromHomeLine +
+            fieldProfileMen.homePlate.centerToHomeLine +
+            bottomMargin) *
+            SCALE +
+          50;
+
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+
+        const ORIGIN = {
+          x: canvasWidth / 2,
+          y: canvasHeight - bottomMargin * SCALE - 25,
+        };
+
+        const toCanvas = (pt) => ({
+          x: ORIGIN.x + pt.x * SCALE,
+          y: ORIGIN.y - pt.y * SCALE,
+        });
+
+        const direction = (angleDeg) => {
+          const rad = (angleDeg * Math.PI) / 180;
+          return { x: Math.sin(rad), y: Math.cos(rad) };
+        };
+
+        const calculateGeometry = (fieldProfile) => {
+          const sectorOriginY = fieldProfile.battingSector.originOffsetY;
+          const leftDir = direction(fieldProfile.battingSector.leftAngleDeg);
+          const rightDir = direction(fieldProfile.battingSector.rightAngleDeg);
+
+          const intersectionWithHomeLine = (dir, originY) => {
+            const t =
+              (fieldProfile.homePlate.centerToHomeLine - originY) / dir.y;
+            return { x: dir.x * t, y: fieldProfile.homePlate.centerToHomeLine };
+          };
+
+          const homeLeft = intersectionWithHomeLine(leftDir, sectorOriginY);
+          const homeRight = intersectionWithHomeLine(rightDir, sectorOriginY);
+
+          const homeLineSegment = {
+            start: {
+              x: -(fieldProfile.homePlate.lineHalfWidth || 6),
+              y: fieldProfile.homePlate.centerToHomeLine,
+            },
+            end: {
+              x: fieldProfile.homePlate.lineHalfWidth || 6,
+              y: fieldProfile.homePlate.centerToHomeLine,
+            },
+          };
+
+          const diagonalLength = fieldProfile.diagonalLines.lengthFromHomeLine;
+          const diagonalY = homeLeft.y + diagonalLength;
+
+          const diagonalLeftEnd = {
+            x: leftDir.x * ((diagonalY - sectorOriginY) / leftDir.y),
+            y: diagonalY,
+          };
+          const diagonalRightEnd = {
+            x: rightDir.x * ((diagonalY - sectorOriginY) / rightDir.y),
+            y: diagonalY,
+          };
+
+          const backY =
+            fieldProfile.homePlate.centerToHomeLine +
+            fieldProfile.backBoundary.distanceFromHomeLine;
+          const halfWidth = fieldProfile.backBoundary.width / 2;
+
+          const leftVerticalEnd = { x: -halfWidth, y: backY };
+          const rightVerticalEnd = { x: halfWidth, y: backY };
+
+          const firstBaseCenter = {
+            x:
+              homeLeft.x +
+              leftDir.x *
+                fieldProfile.firstBaseCanvasOffset.distanceFromHomeLine,
+            y:
+              homeLeft.y +
+              leftDir.y *
+                fieldProfile.firstBaseCanvasOffset.distanceFromHomeLine,
+          };
+
+          const secondOffset =
+            fieldProfile.secondBaseCanvasOffset.distanceFromRightAngle;
+          const secondBaseCenter = {
+            x: diagonalRightEnd.x,
+            y: diagonalRightEnd.y + secondOffset,
+          };
+
+          const thirdOffset =
+            fieldProfile.thirdBaseCanvasOffset.distanceFromLeftAngle;
+          const thirdBaseCenter = {
+            x: diagonalLeftEnd.x,
+            y: diagonalLeftEnd.y + thirdOffset,
+          };
+
+          const baseRadius = fieldProfile.baseRadius;
+          const baseLineLength = fieldProfile.baseLineLength || 5;
+          const lineHalfWidth = 1 / SCALE;
+
+          const secondBaseLineY =
+            secondBaseCenter.y - baseRadius + lineHalfWidth;
+          const secondBaseLine = {
+            start: { x: secondBaseCenter.x, y: secondBaseLineY },
+            end: { x: secondBaseCenter.x + baseLineLength, y: secondBaseLineY },
+          };
+
+          const thirdBaseLineY = thirdBaseCenter.y - baseRadius + lineHalfWidth;
+          const thirdBaseLine = {
+            start: { x: thirdBaseCenter.x, y: thirdBaseLineY },
+            end: { x: thirdBaseCenter.x - baseLineLength, y: thirdBaseLineY },
+          };
+
+          const homePathFirstLine = {
+            start: { x: diagonalLeftEnd.x, y: thirdBaseLineY },
+            end: {
+              x: diagonalLeftEnd.x,
+              y: thirdBaseLineY - (fieldProfile.homePathFirstLine || 16),
+            },
+          };
+
+          const homePathSecondLine = {
+            start: homePathFirstLine.end,
+            end: {
+              x: -(fieldProfile.homePathEndOffset || 6),
+              y: fieldProfile.homePlate.centerToHomeLine,
+            },
+          };
+
+          const frontArc = {
+            center: { x: 0, y: 0 },
+            radius:
+              (fieldProfile.frontArc.innerRadius +
+                fieldProfile.frontArc.outerRadius) /
+              2,
+          };
+
+          return {
+            homeLeft,
+            homeRight,
+            diagonalLeftEnd,
+            diagonalRightEnd,
+            leftVerticalEnd,
+            rightVerticalEnd,
+            firstBaseCenter,
+            secondBaseCenter,
+            thirdBaseCenter,
+            secondBaseLine,
+            thirdBaseLine,
+            homePathFirstLine,
+            homePathSecondLine,
+            homeLineSegment,
+            frontArc,
+            baseRadius,
+            backY,
+            halfWidth,
+          };
+        };
+
+        const drawField = (fieldProfile, color) => {
+          const geo = calculateGeometry(fieldProfile);
+
+          const drawLine = (from, to, lineWidth = 1.2) => {
+            const start = toCanvas(from);
+            const end = toCanvas(to);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(start.x, start.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.stroke();
+          };
+
+          const drawCircle = (center, radius, fill = false) => {
+            const c = toCanvas(center);
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, radius * SCALE, 0, Math.PI * 2);
+            if (fill) {
+              ctx.fillStyle = color;
+              ctx.fill();
+            } else {
+              ctx.strokeStyle = color;
+              ctx.lineWidth = 1.2;
+              ctx.stroke();
+            }
+          };
+
+          // Home plate
+          drawCircle({ x: 0, y: 0 }, fieldProfile.homePlate.radius, true);
+
+          // Home line
+          drawLine(geo.homeLineSegment.start, geo.homeLineSegment.end, 2);
+
+          // Front arc
+          const arcCenter = toCanvas(geo.frontArc.center);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(
+            arcCenter.x,
+            arcCenter.y,
+            geo.frontArc.radius * SCALE,
+            Math.PI,
+            0,
+          );
+          ctx.stroke();
+
+          // Home arcs (R5 and R7)
+          ctx.beginPath();
+          ctx.arc(
+            arcCenter.x,
+            arcCenter.y,
+            fieldProfile.homeArcs.innerRadius * SCALE,
+            Math.PI,
+            0,
+          );
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(
+            arcCenter.x,
+            arcCenter.y,
+            fieldProfile.homeArcs.outerRadius * SCALE,
+            Math.PI,
+            0,
+          );
+          ctx.stroke();
+
+          // Diagonal lines
+          drawLine(geo.homeLeft, geo.diagonalLeftEnd);
+          drawLine(geo.homeRight, geo.diagonalRightEnd);
+
+          // Vertical lines to back
+          drawLine(geo.diagonalLeftEnd, geo.leftVerticalEnd);
+          drawLine(geo.diagonalRightEnd, geo.rightVerticalEnd);
+
+          // Back boundary
+          drawLine(geo.leftVerticalEnd, geo.rightVerticalEnd);
+
+          // Bases
+          drawCircle(geo.firstBaseCenter, geo.baseRadius);
+          drawCircle(geo.secondBaseCenter, geo.baseRadius);
+          drawCircle(geo.thirdBaseCenter, geo.baseRadius);
+
+          // Base lines (2nd and 3rd)
+          drawLine(geo.secondBaseLine.start, geo.secondBaseLine.end);
+          drawLine(geo.thirdBaseLine.start, geo.thirdBaseLine.end);
+
+          // Home path
+          drawLine(geo.homePathFirstLine.start, geo.homePathFirstLine.end);
+          drawLine(geo.homePathSecondLine.start, geo.homePathSecondLine.end);
+
+          // Base connections
+          drawLine(geo.firstBaseCenter, geo.secondBaseCenter);
+          drawLine(geo.secondBaseCenter, geo.thirdBaseCenter);
+        };
+
+        // Clear canvas
+        ctx.fillStyle = "#0f0f1a";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw both fields
+        drawField(fieldProfileMen, "#ffffff");
+        drawField(fieldProfileWomen, "#ffd700");
+      })();
+    </script>
+  </body>
+</html>

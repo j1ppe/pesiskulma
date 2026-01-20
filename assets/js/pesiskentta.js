@@ -21,7 +21,7 @@
     homePlate: {
       radius: 0.3,
       centerToHomeLine: 1.3,
-      lineHalfWidth: 6.0,
+      lineHalfWidth: 7.0,
     },
     battingSector: {
       originOffsetY: -0.569,
@@ -38,6 +38,10 @@
     frontArc: {
       innerRadius: 2.5,
       outerRadius: 2.7,
+    },
+    homeArcs: {
+      innerRadius: 5.0,
+      outerRadius: 7.0,
     },
     firstBaseCanvasOffset: {
       distanceFromHomeLine: 20.0,
@@ -56,7 +60,7 @@
     homePlate: {
       radius: 0.3,
       centerToHomeLine: 1.3,
-      lineHalfWidth: 6.0,
+      lineHalfWidth: 7.0,
     },
     battingSector: {
       originOffsetY: -0.569,
@@ -73,6 +77,10 @@
     frontArc: {
       innerRadius: 2.5,
       outerRadius: 2.7,
+    },
+    homeArcs: {
+      innerRadius: 5.0,
+      outerRadius: 7.0,
     },
     firstBaseCanvasOffset: {
       distanceFromHomeLine: 17.5,
@@ -128,10 +136,12 @@
   function resizeCanvas() {
     const fieldWidth = 60;
     const topMargin = 1.5;
+    const bottomMargin = 8;
     const fieldHeight =
       fieldProfile.homePlate.centerToHomeLine +
       fieldProfile.backBoundary.distanceFromHomeLine +
-      topMargin;
+      topMargin +
+      bottomMargin;
 
     const viewportWidth = Math.max(
       window.innerWidth || document.documentElement.clientWidth || 0,
@@ -179,7 +189,7 @@
 
     ORIGIN = {
       x: canvas.width / 2,
-      y: canvas.height - paddingY,
+      y: canvas.height - paddingY - bottomMargin * SCALE,
     };
 
     drawField();
@@ -367,6 +377,36 @@
     drawLine(homeLeft, homeRight);
     if (homeLineSegment) {
       drawLine(homeLineSegment.start, homeLineSegment.end, "#ffffff", 3.2);
+    }
+
+    const homeLineCenter = toCanvas({
+      x: 0,
+      y: fieldProfile.homePlate.centerToHomeLine,
+    });
+    const homeArcs = fieldProfile.homeArcs;
+    if (homeArcs) {
+      ctx.save();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(
+        homeLineCenter.x,
+        homeLineCenter.y,
+        homeArcs.innerRadius * SCALE,
+        0,
+        Math.PI,
+      );
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(
+        homeLineCenter.x,
+        homeLineCenter.y,
+        homeArcs.outerRadius * SCALE,
+        0,
+        Math.PI,
+      );
+      ctx.stroke();
+      ctx.restore();
     }
 
     if (frontArc && frontArc.outerRadius > 0) {

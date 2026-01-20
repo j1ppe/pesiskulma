@@ -315,6 +315,30 @@
       },
     };
 
+    // Extended line continuing first-to-second base line to home path diagonal (homePathSecondLine)
+    const firstToSecondDir = unitVector(firstBaseCenter, secondBaseCenter);
+    // homePathSecondLine goes from homePathFirstLine.end to (-6, centerToHomeLine)
+    // We need to find intersection of first-to-second line with homePathSecondLine
+    const homePathDir = unitVector(
+      homePathSecondLine.start,
+      homePathSecondLine.end,
+    );
+    // Line intersection: firstBaseCenter + t1 * firstToSecondDir = homePathSecondLine.start + t2 * homePathDir
+    // Solve for t1:
+    const dx = homePathSecondLine.start.x - firstBaseCenter.x;
+    const dy = homePathSecondLine.start.y - firstBaseCenter.y;
+    const cross =
+      firstToSecondDir.x * homePathDir.y - firstToSecondDir.y * homePathDir.x;
+    const t1 = (dx * homePathDir.y - dy * homePathDir.x) / cross;
+    const intersectionWithHomePath = {
+      x: firstBaseCenter.x + t1 * firstToSecondDir.x,
+      y: firstBaseCenter.y + t1 * firstToSecondDir.y,
+    };
+    const firstToSecondExtension = {
+      start: intersectionWithHomePath,
+      end: firstBaseCenter,
+    };
+
     const firstInterval =
       fieldProfile.firstBaseCanvasOffset.distanceFromHomeLine;
 
@@ -337,7 +361,9 @@
       second: firstToSecond.length,
       third: secondToThird.length,
       back: fieldProfile.backBoundary.distanceFromHomeLine,
-      diagonal: fieldProfile.diagonalLines.lengthFromHomeLine,
+      diagonal:
+        distanceBetween(homePathFirstLine.start, homePathFirstLine.end) +
+        distanceBetween(homePathSecondLine.start, homePathSecondLine.end),
       width:
         typeof fieldProfile.backBoundary.width === "number"
           ? fieldProfile.backBoundary.width
@@ -368,6 +394,7 @@
       thirdBaseLine,
       homePathFirstLine,
       homePathSecondLine,
+      firstToSecondExtension,
       measurements,
       basePathSegments: {
         firstToSecond,
@@ -395,6 +422,7 @@
       thirdBaseLine,
       homePathFirstLine,
       homePathSecondLine,
+      firstToSecondExtension,
       measurements,
       basePathSegments,
       homeLineSegment,
@@ -522,28 +550,11 @@
     drawLine(thirdBaseLine.start, thirdBaseLine.end);
     drawLine(homePathFirstLine.start, homePathFirstLine.end);
     drawLine(homePathSecondLine.start, homePathSecondLine.end);
+    drawLine(firstToSecondExtension.start, firstToSecondExtension.end);
 
     drawLine(secondBaseCenter, thirdBaseCenter);
     drawLine(firstBaseCenter, secondBaseCenter);
 
-    const highlightSegment = (segment) => {
-      if (!segment) {
-        return;
-      }
-      const start = toCanvas(segment.start);
-      const end = toCanvas(segment.end);
-      ctx.save();
-      ctx.strokeStyle = "#16e1ff";
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      ctx.moveTo(start.x, start.y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
-      ctx.restore();
-    };
-
-    highlightSegment(basePathSegments.firstToSecond);
-    highlightSegment(basePathSegments.secondToThird);
     updateDimensions(measurements);
   }
 

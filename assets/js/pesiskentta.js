@@ -1,6 +1,7 @@
 (() => {
   const canvas = document.getElementById("fullFieldCanvas");
   const fieldButtons = document.querySelectorAll("[data-fullfield]");
+  const measurementToggle = document.getElementById("measurementToggle");
   const dimensionTargets = {
     first: document.querySelector("[data-dimension='first']"),
     second: document.querySelector("[data-dimension='second']"),
@@ -15,6 +16,7 @@
   }
 
   const ctx = canvas.getContext("2d");
+  let showMeasurementsOnField = false;
 
   const fieldProfileMen = {
     id: "Miehet",
@@ -555,7 +557,242 @@
     drawLine(secondBaseCenter, thirdBaseCenter);
     drawLine(firstBaseCenter, secondBaseCenter);
 
+    if (showMeasurementsOnField) {
+      // Pesävälit - piirretään suoraan viivan päälle
+      drawDimensionLine(
+        homeLeft,
+        firstBaseCenter,
+        measurements.first,
+        "Ykkösväli",
+        0,
+        "on-line",
+        15,
+      );
+      drawDimensionLine(
+        basePathSegments.firstToSecond.start,
+        basePathSegments.firstToSecond.end,
+        measurements.second,
+        "Kakkosväli",
+        0,
+        "on-line",
+      );
+      drawDimensionLine(
+        basePathSegments.secondToThird.start,
+        basePathSegments.secondToThird.end,
+        measurements.third,
+        "Kolmosväli",
+        0,
+        "on-line",
+      );
+
+      // Kentän pituus (kotipesäviivasta takarajaan)
+      const homeLineY = fieldProfile.homePlate.centerToHomeLine;
+      const backLineY =
+        homeLineY + fieldProfile.backBoundary.distanceFromHomeLine;
+      drawDimensionLine(
+        { x: fieldProfile.backBoundary.width / 2 + 3, y: homeLineY },
+        { x: fieldProfile.backBoundary.width / 2 + 3, y: backLineY },
+        measurements.back,
+        "Kentän pituus",
+        0,
+        "vertical",
+      );
+
+      // Kentän leveys takarajalla
+      const halfWidth = fieldProfile.backBoundary.width / 2;
+      drawDimensionLine(
+        { x: -halfWidth, y: backLineY - 3 },
+        { x: halfWidth, y: backLineY - 3 },
+        measurements.width,
+        "Kentän leveys",
+        0,
+        "horizontal",
+      );
+
+      // Etukaari - syöttölautasen etuosasta etukaaren ulkokehälle
+      const plateRadius = fieldProfile.homePlate.radius;
+      const frontArcRadius = fieldProfile.frontArc.outerRadius;
+      const frontArcDistance = frontArcRadius - plateRadius;
+      drawDimensionLine(
+        { x: 0, y: plateRadius },
+        { x: 0, y: frontArcRadius },
+        frontArcDistance,
+        "Etukaari",
+        0,
+        "vertical",
+      );
+
+      // Kotipolku - piirretään molemmat osuudet erikseen
+      const homePathFirstLength = distanceBetween(
+        homePathFirstLine.start,
+        homePathFirstLine.end,
+      );
+      const homePathSecondLength = distanceBetween(
+        homePathSecondLine.start,
+        homePathSecondLine.end,
+      );
+
+      drawDimensionLine(
+        homePathFirstLine.start,
+        homePathFirstLine.end,
+        homePathFirstLength,
+        "Kotipolku 1",
+        0,
+        "on-line",
+        -15,
+      );
+
+      drawDimensionLine(
+        homePathSecondLine.start,
+        homePathSecondLine.end,
+        homePathSecondLength,
+        "Kotipolku 2",
+        0,
+        "on-line",
+        -15,
+      );
+    }
+
     updateDimensions(measurements);
+  }
+
+  function drawDimensionLine(
+    pointA,
+    pointB,
+    distance,
+    label,
+    offset,
+    side,
+    labelOffsetPx = 0,
+  ) {
+    // Laske suuntavektori ja kohtisuora vektori
+    const dx = pointB.x - pointA.x;
+    const dy = pointB.y - pointA.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (length === 0) return;
+
+    const unitX = dx / length;
+    const unitY = dy / length;
+
+    // Kohtisuora vektori (90 astetta vastapäivään)
+    let perpX = -unitY;
+    let perpY = unitX;
+
+    // Offset-suunta
+    if (side === "left") {
+      // pidetään sellaisenaan
+    } else if (side === "right") {
+      perpX = -perpX;
+      perpY = -perpY;
+    } else if (side === "vertical" || side === "horizontal") {
+      perpX = 0;
+      perpY = 0;
+    }
+
+    // Offset-pisteet
+    const offsetA = {
+      x: pointA.x + perpX * offset,
+      y: pointA.y + perpY * offset,
+    };
+    const offsetB = {
+      x: pointB.x + perpX * offset,
+      y: pointB.y + perpY * offset,
+    };
+
+    const canvasA = toCanvas(offsetA);
+    const canvasB = toCanvas(offsetB);
+    const midX = (canvasA.x + canvasB.x) / 2;
+    const midY = (canvasA.y + canvasB.y) / 2;
+
+    // Laske canvas-koordinaattien suuntavektori mittaviivoille
+    const canvasDx = canvasB.x - canvasA.x;
+    const canvasDy = canvasB.y - canvasA.y;
+    const canvasLength = Math.sqrt(canvasDx * canvasDx + canvasDy * canvasDy);
+    const canvasUnitX = canvasLength > 0 ? canvasDx / canvasLength : 0;
+    const canvasUnitY = canvasLength > 0 ? canvasDy / canvasLength : 0;
+
+    ctx.save();
+
+    // Piirretään mittaviiva
+    ctx.strokeStyle = "#16e1ff";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(canvasA.x, canvasA.y);
+    ctx.lineTo(canvasB.x, canvasB.y);
+    ctx.stroke();
+
+    // Päätemerkit - kohtisuorassa mittaviivaan nähden
+    const tickSize = 5;
+    // Kohtisuora vektori canvas-mittaviivaan
+    const tickX = -canvasUnitY;
+    const tickY = canvasUnitX;
+
+    ctx.beginPath();
+    ctx.moveTo(canvasA.x - tickX * tickSize, canvasA.y - tickY * tickSize);
+    ctx.lineTo(canvasA.x + tickX * tickSize, canvasA.y + tickY * tickSize);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(canvasB.x - tickX * tickSize, canvasB.y - tickY * tickSize);
+    ctx.lineTo(canvasB.x + tickX * tickSize, canvasB.y + tickY * tickSize);
+    ctx.stroke();
+
+    // Tekstilabel - vain mitta ilman nimeä
+    const text = formatMeters(distance);
+    ctx.font = "bold 12px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const metrics = ctx.measureText(text);
+    const padding = 4;
+    const boxWidth = metrics.width + padding * 2;
+    const boxHeight = 18;
+
+    // Siirrä label sivulle pystysuorilla viivoilla tai käyttämällä labelOffsetPx
+    const autoOffsetX = side === "vertical" ? 25 : 0;
+    const labelX = midX + autoOffsetX + labelOffsetPx;
+    const labelY = midY;
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(
+      labelX - boxWidth / 2,
+      labelY - boxHeight / 2,
+      boxWidth,
+      boxHeight,
+    );
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(text, labelX, labelY);
+
+    ctx.restore();
+  }
+
+  function drawMeasurementLabel(pointA, pointB, distance) {
+    const midX = (pointA.x + pointB.x) / 2;
+    const midY = (pointA.y + pointB.y) / 2;
+    const mid = toCanvas({ x: midX, y: midY });
+
+    const text = formatMeters(distance);
+    ctx.font = "bold 14px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const metrics = ctx.measureText(text);
+    const padding = 6;
+    const boxWidth = metrics.width + padding * 2;
+    const boxHeight = 20;
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+    ctx.fillRect(
+      mid.x - boxWidth / 2,
+      mid.y - boxHeight / 2,
+      boxWidth,
+      boxHeight,
+    );
+
+    ctx.fillStyle = "#16e1ff";
+    ctx.fillText(text, mid.x, mid.y);
   }
 
   function drawLine(a, b) {
@@ -599,6 +836,16 @@
       resizeCanvas();
     });
   });
+
+  if (measurementToggle) {
+    measurementToggle.addEventListener("click", () => {
+      showMeasurementsOnField = !showMeasurementsOnField;
+      measurementToggle.textContent = showMeasurementsOnField
+        ? "Piilota mitat kentältä"
+        : "Näytä mitat kentällä";
+      drawField();
+    });
+  }
 
   drawField();
 })();

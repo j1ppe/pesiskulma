@@ -17,6 +17,8 @@
 
   const ctx = canvas.getContext("2d");
   let showMeasurementsOnField = false;
+  const tooltip = document.getElementById("measurementTooltip");
+  let measurementHitAreas = [];
 
   const fieldProfileMen = {
     id: "Miehet",
@@ -409,6 +411,7 @@
 
   function drawField() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    measurementHitAreas = []; // Reset hit areas
     const geometry = calculateGeometry();
     const {
       homeLeft,
@@ -567,6 +570,10 @@
         0,
         "on-line",
         15,
+        {
+          value: formatMeters(measurements.first),
+          description: "Etäisyys kotipesäviivasta ensimmäiseen pesään",
+        },
       );
       drawDimensionLine(
         basePathSegments.firstToSecond.start,
@@ -575,6 +582,11 @@
         "Kakkosväli",
         0,
         "on-line",
+        0,
+        {
+          value: formatMeters(measurements.second),
+          description: "Etäisyys ensimmäisestä pesästä toiseen pesään",
+        },
       );
       drawDimensionLine(
         basePathSegments.secondToThird.start,
@@ -583,6 +595,11 @@
         "Kolmosväli",
         0,
         "on-line",
+        0,
+        {
+          value: formatMeters(measurements.third),
+          description: "Etäisyys toisesta pesästä kolmanteen pesään",
+        },
       );
 
       // Kentän pituus (kotipesäviivasta takarajaan)
@@ -596,6 +613,11 @@
         "Kentän pituus",
         0,
         "vertical",
+        0,
+        {
+          value: formatMeters(measurements.back),
+          description: "Kentän pituus kotipesäviivasta takarajaan",
+        },
       );
 
       // Kentän leveys takarajalla
@@ -607,19 +629,34 @@
         "Kentän leveys",
         0,
         "horizontal",
+        0,
+        {
+          value: formatMeters(measurements.width),
+          description: "Kentän leveys takarajalla",
+        },
       );
 
       // Etukaari - syöttölautasen etuosasta etukaaren ulkokehälle
       const plateRadius = fieldProfile.homePlate.radius;
       const frontArcRadius = fieldProfile.frontArc.outerRadius;
       const frontArcDistance = frontArcRadius - plateRadius;
+      const frontArcPoints = {
+        start: { x: 0, y: plateRadius },
+        end: { x: 0, y: frontArcRadius },
+      };
       drawDimensionLine(
-        { x: 0, y: plateRadius },
-        { x: 0, y: frontArcRadius },
+        frontArcPoints.start,
+        frontArcPoints.end,
         frontArcDistance,
         "Etukaari",
         0,
         "vertical",
+        0,
+        {
+          value: formatMeters(frontArcDistance),
+          description:
+            "Etäisyys syöttölautasen etureunasta etukaaren ulkolaitaan",
+        },
       );
 
       // Kotipolku - piirretään molemmat osuudet erikseen
@@ -631,25 +668,34 @@
         homePathSecondLine.start,
         homePathSecondLine.end,
       );
+      const homePathTotal = homePathFirstLength + homePathSecondLength;
 
       drawDimensionLine(
         homePathFirstLine.start,
         homePathFirstLine.end,
         homePathFirstLength,
-        "Kotipolku 1",
+        "Kotipolku",
         0,
         "on-line",
         -15,
+        {
+          value: formatMeters(homePathTotal),
+          description: `Lipulle ${formatMeters(homePathFirstLength)}<br>Kotipesään ${formatMeters(homePathSecondLength)}`,
+        },
       );
 
       drawDimensionLine(
         homePathSecondLine.start,
         homePathSecondLine.end,
         homePathSecondLength,
-        "Kotipolku 2",
+        "Kotipolku",
         0,
         "on-line",
         -15,
+        {
+          value: formatMeters(homePathTotal),
+          description: `Lipulle ${formatMeters(homePathFirstLength)}<br>Kotipesään ${formatMeters(homePathSecondLength)}`,
+        },
       );
     }
 
@@ -664,6 +710,7 @@
     offset,
     side,
     labelOffsetPx = 0,
+    tooltipData = null,
   ) {
     // Laske suuntavektori ja kohtisuora vektori
     const dx = pointB.x - pointA.x;
@@ -765,6 +812,22 @@
     ctx.fillStyle = "#ffffff";
     ctx.fillText(text, labelX, labelY);
 
+    // Store hit area if tooltip data is provided
+    if (tooltipData) {
+      measurementHitAreas.push({
+        startX: canvasA.x,
+        startY: canvasA.y,
+        endX: canvasB.x,
+        endY: canvasB.y,
+        labelX: labelX,
+        labelY: labelY,
+        labelWidth: boxWidth,
+        labelHeight: boxHeight,
+        title: label,
+        tooltipData: tooltipData,
+      });
+    }
+
     ctx.restore();
   }
 
@@ -846,6 +909,113 @@
       drawField();
     });
   }
+
+  // Canvas mouse interaction for tooltips
+  function getCanvasMousePosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+  }
+
+  function pointToLineDistance(px, py, x1, y1, x2, y2) {
+    const A = px - x1;
+    const B = py - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    let param = -1;
+    if (lenSq !== 0) param = dot / lenSq;
+
+    let xx, yy;
+
+    if (param < 0) {
+      xx = x1;
+      yy = y1;
+    } else if (param > 1) {
+      xx = x2;
+      yy = y2;
+    } else {
+      xx = x1 + param * C;
+      yy = y1 + param * D;
+    }
+
+    const dx = px - xx;
+    const dy = py - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function isPointInRect(px, py, x, y, width, height) {
+    return (
+      px >= x - width / 2 &&
+      px <= x + width / 2 &&
+      py >= y - height / 2 &&
+      py <= y + height / 2
+    );
+  }
+
+  function handleCanvasHover(event) {
+    if (!showMeasurementsOnField || measurementHitAreas.length === 0) {
+      tooltip.style.display = "none";
+      return;
+    }
+
+    const pos = getCanvasMousePosition(event);
+    const hitThreshold = 10; // pixels
+
+    let hoveredArea = null;
+
+    for (const area of measurementHitAreas) {
+      // Check if hovering over the line
+      const distToLine = pointToLineDistance(
+        pos.x,
+        pos.y,
+        area.startX,
+        area.startY,
+        area.endX,
+        area.endY,
+      );
+
+      // Check if hovering over the label box
+      const overLabel = isPointInRect(
+        pos.x,
+        pos.y,
+        area.labelX,
+        area.labelY,
+        area.labelWidth,
+        area.labelHeight,
+      );
+
+      if (distToLine < hitThreshold || overLabel) {
+        hoveredArea = area;
+        break;
+      }
+    }
+
+    if (hoveredArea) {
+      tooltip.innerHTML = `
+        <div class="tooltip-title">${hoveredArea.title}</div>
+        <div class="tooltip-value">${hoveredArea.tooltipData.value}</div>
+        <div class="tooltip-description">${hoveredArea.tooltipData.description}</div>
+      `;
+      tooltip.style.display = "block";
+      tooltip.style.left = event.clientX + 15 + "px";
+      tooltip.style.top = event.clientY + 15 + "px";
+      canvas.style.cursor = "pointer";
+    } else {
+      tooltip.style.display = "none";
+      canvas.style.cursor = "default";
+    }
+  }
+
+  canvas.addEventListener("mousemove", handleCanvasHover);
+  canvas.addEventListener("mouseleave", () => {
+    tooltip.style.display = "none";
+    canvas.style.cursor = "default";
+  });
 
   drawField();
 })();

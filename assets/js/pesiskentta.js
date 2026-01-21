@@ -19,6 +19,19 @@
   let showMeasurementsOnField = false;
   const tooltip = document.getElementById("measurementTooltip");
   let measurementHitAreas = [];
+  
+  // Edit mode state
+  let editMode = false;
+  let draggingHandle = null;
+  let editablePoints = {
+    homePathStart: null, // Will be initialized in calculateGeometry
+    homePathMid: null,
+    homePathEnd: null
+  };
+  let snapTargets = [];
+  let activeSnapPoint = null;
+  const SNAP_THRESHOLD = 0.4; // meters
+  const editModeToggle = document.getElementById("editModeToggle");
 
   const fieldProfileMen = {
     id: "Miehet",
@@ -214,6 +227,13 @@
       y: ORIGIN.y - point.y * SCALE,
     };
   }
+  
+  function fromCanvas(canvasPoint) {
+    return {
+      x: (canvasPoint.x - ORIGIN.x) / SCALE,
+      y: (ORIGIN.y - canvasPoint.y) / SCALE,
+    };
+  }
 
   function direction(angleDeg) {
     const rad = (angleDeg * Math.PI) / 180;
@@ -304,33 +324,55 @@
       start: { x: thirdBaseCenter.x, y: thirdBaseLineY },
       end: { x: thirdBaseCenter.x - baseLineLength, y: thirdBaseLineY },
     };
-    const homePathFirstLine = {
+    
+    // ORIGINAL home path lines for field rendering (always fixed, white)
+    const originalHomePathFirstLine = {
       start: { x: diagonalLeftEnd.x, y: thirdBaseLineY },
       end: {
         x: diagonalLeftEnd.x,
         y: thirdBaseLineY - (fieldProfile.homePathFirstLine || 16),
       },
     };
-    const homePathSecondLine = {
-      start: homePathFirstLine.end,
+    const originalHomePathSecondLine = {
+      start: originalHomePathFirstLine.end,
       end: {
         x: -(fieldProfile.homePathEndOffset || 6),
         y: fieldProfile.homePlate.centerToHomeLine,
       },
     };
+    
+    // Initialize editable points if not set (for measurements only)
+    if (!editablePoints.homePathStart) {
+      editablePoints.homePathStart = { ...originalHomePathFirstLine.start };
+    }
+    if (!editablePoints.homePathMid) {
+      editablePoints.homePathMid = { ...originalHomePathFirstLine.end };
+    }
+    if (!editablePoints.homePathEnd) {
+      editablePoints.homePathEnd = { ...originalHomePathSecondLine.end };
+    }
+    
+    // EDITABLE home path lines for measurements (can be moved)
+    const homePathFirstLine = {
+      start: { ...editablePoints.homePathStart },
+      end: { ...editablePoints.homePathMid },
+    };
+    const homePathSecondLine = {
+      start: { ...editablePoints.homePathMid },
+      end: { ...editablePoints.homePathEnd },
+    };
 
-    // Extended line continuing first-to-second base line to home path diagonal (homePathSecondLine)
+    // Extended line continuing first-to-second base line to ORIGINAL home path diagonal
     const firstToSecondDir = unitVector(firstBaseCenter, secondBaseCenter);
-    // homePathSecondLine goes from homePathFirstLine.end to (-6, centerToHomeLine)
-    // We need to find intersection of first-to-second line with homePathSecondLine
+    // Use ORIGINAL home path for the field line intersection
     const homePathDir = unitVector(
-      homePathSecondLine.start,
-      homePathSecondLine.end,
+      originalHomePathSecondLine.start,
+      originalHomePathSecondLine.end,
     );
-    // Line intersection: firstBaseCenter + t1 * firstToSecondDir = homePathSecondLine.start + t2 * homePathDir
+    // Line intersection: firstBaseCenter + t1 * firstToSecondDir = originalHomePathSecondLine.start + t2 * homePathDir
     // Solve for t1:
-    const dx = homePathSecondLine.start.x - firstBaseCenter.x;
-    const dy = homePathSecondLine.start.y - firstBaseCenter.y;
+    const dx = originalHomePathSecondLine.start.x - firstBaseCenter.x;
+    const dy = originalHomePathSecondLine.start.y - firstBaseCenter.y;
     const cross =
       firstToSecondDir.x * homePathDir.y - firstToSecondDir.y * homePathDir.x;
     const t1 = (dx * homePathDir.y - dy * homePathDir.x) / cross;
@@ -383,6 +425,25 @@
       startAngle: rightCanvasAngle,
       endAngle: leftCanvasAngle,
     };
+    
+    // Generate snap targets for edit mode
+    const snapTargets = [
+      // Third base line (horizontal line)
+      { type: 'line', start: thirdBaseLine.start, end: thirdBaseLine.end, name: 'thirdBaseLine' },
+      // Third base center point
+      { type: 'point', pos: thirdBaseCenter, name: 'thirdBaseCenter' },
+      // Third base arc (circle perimeter)
+      { type: 'arc', center: thirdBaseCenter, radius: fieldProfile.baseRadius, name: 'thirdBaseArc' },
+      // Home line
+      { type: 'line', start: homeLineSegment.start, end: homeLineSegment.end, name: 'homeLine' },
+      // Left diagonal line
+      { type: 'line', start: homeLeft, end: diagonalLeftEnd, name: 'leftDiagonal' },
+      // Home plate center
+      { type: 'point', pos: { x: 0, y: 0 }, name: 'homePlate' },
+      // Original home path lines
+      { type: 'line', start: originalHomePathFirstLine.start, end: originalHomePathFirstLine.end, name: 'originalHomePathFirst' },
+      { type: 'line', start: originalHomePathSecondLine.start, end: originalHomePathSecondLine.end, name: 'originalHomePathSecond' },
+    ];
 
     return {
       homeLeft,
@@ -396,6 +457,8 @@
       thirdBaseCenter,
       secondBaseLine,
       thirdBaseLine,
+      originalHomePathFirstLine,
+      originalHomePathSecondLine,
       homePathFirstLine,
       homePathSecondLine,
       firstToSecondExtension,
@@ -406,6 +469,7 @@
       },
       homeLineSegment,
       frontArc,
+      snapTargets,
     };
   }
 
@@ -425,6 +489,8 @@
       thirdBaseCenter,
       secondBaseLine,
       thirdBaseLine,
+      originalHomePathFirstLine,
+      originalHomePathSecondLine,
       homePathFirstLine,
       homePathSecondLine,
       firstToSecondExtension,
@@ -432,7 +498,11 @@
       basePathSegments,
       homeLineSegment,
       frontArc,
+      snapTargets: generatedSnapTargets,
     } = geometry;
+    
+    // Update global snap targets
+    snapTargets = generatedSnapTargets;
 
     const plate = toCanvas({ x: 0, y: 0 });
     ctx.fillStyle = "#ffffff";
@@ -553,13 +623,14 @@
 
     drawLine(secondBaseLine.start, secondBaseLine.end);
     drawLine(thirdBaseLine.start, thirdBaseLine.end);
-    drawLine(homePathFirstLine.start, homePathFirstLine.end);
-    drawLine(homePathSecondLine.start, homePathSecondLine.end);
+    drawLine(originalHomePathFirstLine.start, originalHomePathFirstLine.end);
+    drawLine(originalHomePathSecondLine.start, originalHomePathSecondLine.end);
     drawLine(firstToSecondExtension.start, firstToSecondExtension.end);
 
     drawLine(secondBaseCenter, thirdBaseCenter);
     drawLine(firstBaseCenter, secondBaseCenter);
 
+    // Draw measurements AFTER field (on top)
     if (showMeasurementsOnField) {
       // Pesävälit - piirretään suoraan viivan päälle
       drawDimensionLine(
@@ -700,6 +771,134 @@
     }
 
     updateDimensions(measurements);
+    
+    // Draw edit handles if in edit mode
+    if (editMode && showMeasurementsOnField) {
+      drawEditHandles();
+      
+      // Draw snap indicator if active
+      if (activeSnapPoint) {
+        drawSnapIndicator(activeSnapPoint);
+      }
+    }
+  }
+  
+  function drawSnapIndicator(snapPoint) {
+    const canvasPoint = toCanvas(snapPoint);
+    
+    ctx.save();
+    ctx.strokeStyle = '#4cd964';
+    ctx.fillStyle = 'rgba(76, 217, 100, 0.2)';
+    ctx.lineWidth = 3;
+    
+    // Pulsing circle
+    ctx.beginPath();
+    ctx.arc(canvasPoint.x, canvasPoint.y, 0.6 * SCALE, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Cross hairs
+    const crossSize = 0.4 * SCALE;
+    ctx.beginPath();
+    ctx.moveTo(canvasPoint.x - crossSize, canvasPoint.y);
+    ctx.lineTo(canvasPoint.x + crossSize, canvasPoint.y);
+    ctx.moveTo(canvasPoint.x, canvasPoint.y - crossSize);
+    ctx.lineTo(canvasPoint.x, canvasPoint.y + crossSize);
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  function findNearestSnap(point, threshold = SNAP_THRESHOLD) {
+    let nearestPoint = null;
+    let minDistance = threshold;
+    
+    for (const target of snapTargets) {
+      let snapPoint = null;
+      let distance = Infinity;
+      
+      if (target.type === 'point') {
+        // Snap to point
+        snapPoint = target.pos;
+        distance = Math.hypot(point.x - target.pos.x, point.y - target.pos.y);
+      } else if (target.type === 'line') {
+        // Snap to nearest point on line
+        snapPoint = nearestPointOnLine(point, target.start, target.end);
+        distance = Math.hypot(point.x - snapPoint.x, point.y - snapPoint.y);
+      } else if (target.type === 'arc') {
+        // Snap to nearest point on circle perimeter
+        const dx = point.x - target.center.x;
+        const dy = point.y - target.center.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 0) {
+          snapPoint = {
+            x: target.center.x + (dx / dist) * target.radius,
+            y: target.center.y + (dy / dist) * target.radius,
+          };
+          distance = Math.abs(dist - target.radius);
+        }
+      }
+      
+      if (snapPoint && distance < minDistance) {
+        minDistance = distance;
+        nearestPoint = snapPoint;
+      }
+    }
+    
+    return nearestPoint;
+  }
+  
+  function nearestPointOnLine(point, lineStart, lineEnd) {
+    const dx = lineEnd.x - lineStart.x;
+    const dy = lineEnd.y - lineStart.y;
+    const lengthSq = dx * dx + dy * dy;
+    
+    if (lengthSq === 0) return lineStart;
+    
+    let t = ((point.x - lineStart.x) * dx + (point.y - lineStart.y) * dy) / lengthSq;
+    t = Math.max(0, Math.min(1, t));
+    
+    return {
+      x: lineStart.x + t * dx,
+      y: lineStart.y + t * dy,
+    };
+  }
+  
+  function drawEditHandles() {
+    const handleRadius = 0.5; // meters in field coordinates
+    
+    // Draw handles for home path points
+    const handles = [
+      { point: editablePoints.homePathStart, name: 'homePathStart' },
+      { point: editablePoints.homePathMid, name: 'homePathMid' },
+      { point: editablePoints.homePathEnd, name: 'homePathEnd' }
+    ];
+    
+    handles.forEach(({ point, name }) => {
+      const canvasPoint = toCanvas(point);
+      const isActive = draggingHandle === name;
+      
+      ctx.save();
+      
+      // Draw outer circle (glow effect when active)
+      if (isActive) {
+        ctx.fillStyle = 'rgba(76, 217, 100, 0.3)';
+        ctx.beginPath();
+        ctx.arc(canvasPoint.x, canvasPoint.y, (handleRadius * 1.5) * SCALE, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Draw main handle circle
+      ctx.fillStyle = isActive ? '#4cd964' : '#ff6b6b';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(canvasPoint.x, canvasPoint.y, handleRadius * SCALE, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      ctx.restore();
+    });
   }
 
   function drawDimensionLine(
@@ -958,6 +1157,32 @@
   }
 
   function handleCanvasHover(event) {
+    // In edit mode, check for handle hover
+    if (editMode && showMeasurementsOnField) {
+      const pos = getCanvasMousePosition(event);
+      const fieldPos = fromCanvas(pos);
+      
+      let overHandle = false;
+      const handleRadius = 0.5;
+      
+      for (const [key, point] of Object.entries(editablePoints)) {
+        const dist = Math.hypot(fieldPos.x - point.x, fieldPos.y - point.y);
+        if (dist < handleRadius) {
+          canvas.style.cursor = 'grab';
+          overHandle = true;
+          break;
+        }
+      }
+      
+      if (!overHandle && !draggingHandle) {
+        canvas.style.cursor = 'default';
+      }
+      
+      tooltip.style.display = 'none';
+      return;
+    }
+    
+    // Normal tooltip behavior
     if (!showMeasurementsOnField || measurementHitAreas.length === 0) {
       tooltip.style.display = "none";
       return;
@@ -1010,12 +1235,81 @@
       canvas.style.cursor = "default";
     }
   }
+  
+  // Combined mouse move handler
+  function handleMouseMove(event) {
+    if (draggingHandle) {
+      const pos = getCanvasMousePosition(event);
+      let fieldPos = fromCanvas(pos);
+      
+      // Try to snap to nearest target
+      const snapPoint = findNearestSnap(fieldPos);
+      if (snapPoint) {
+        fieldPos = snapPoint;
+        activeSnapPoint = snapPoint;
+      } else {
+        activeSnapPoint = null;
+      }
+      
+      // Update the point position
+      editablePoints[draggingHandle] = { ...fieldPos };
+      
+      // Redraw field with new positions
+      drawField();
+    } else {
+      handleCanvasHover(event);
+    }
+  }
 
-  canvas.addEventListener("mousemove", handleCanvasHover);
+  canvas.addEventListener("mousemove", handleMouseMove);
   canvas.addEventListener("mouseleave", () => {
     tooltip.style.display = "none";
     canvas.style.cursor = "default";
+    draggingHandle = null;
   });
+  
+  // Mouse down - start dragging
+  canvas.addEventListener("mousedown", (event) => {
+    if (!editMode || !showMeasurementsOnField) return;
+    
+    const pos = getCanvasMousePosition(event);
+    const fieldPos = fromCanvas(pos);
+    const handleRadius = 0.5;
+    
+    for (const [key, point] of Object.entries(editablePoints)) {
+      const dist = Math.hypot(fieldPos.x - point.x, fieldPos.y - point.y);
+      if (dist < handleRadius) {
+        draggingHandle = key;
+        canvas.style.cursor = 'grabbing';
+        break;
+      }
+    }
+  });
+  
+  // Mouse up - stop dragging
+  canvas.addEventListener("mouseup", () => {
+    if (draggingHandle) {
+      draggingHandle = null;
+      activeSnapPoint = null;
+      canvas.style.cursor = 'grab';
+      drawField(); // Redraw to remove snap indicator
+    }
+  });
+  
+  // Edit mode toggle
+  if (editModeToggle) {
+    editModeToggle.addEventListener("click", () => {
+      editMode = !editMode;
+      editModeToggle.textContent = editMode ? "Tallenna mittaukset" : "Muokkaa mittauksia";
+      editModeToggle.classList.toggle("active", editMode);
+      
+      if (!editMode) {
+        draggingHandle = null;
+      }
+      
+      drawField();
+    });
+  }
 
   drawField();
 })();

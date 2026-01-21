@@ -768,6 +768,34 @@
           description: `Lipulle ${formatMeters(homePathFirstLength)}<br>Kotipesään ${formatMeters(homePathSecondLength)}`,
         },
       );
+      
+      // Show offset distance if start point has been moved
+      if (editMode) {
+        const offsetDistance = distanceBetween(
+          originalHomePathFirstLine.start,
+          homePathFirstLine.start
+        );
+        
+        // Only show if moved more than 1cm
+        if (offsetDistance > 0.01) {
+          drawDimensionLine(
+            originalHomePathFirstLine.start,
+            homePathFirstLine.start,
+            offsetDistance,
+            "Siirto",
+            3.0, // Offset 3.0m upwards
+            "bottom", // Changed to bottom to go upwards in field coords
+            0,
+            {
+              value: formatMeters(offsetDistance),
+              description: "Etäisyys alkuperäisestä lähtöpisteestä"
+            },
+            "#ff9500", // Orange line color
+            "#ff9500", // Orange text color
+            "rgba(0, 0, 0, 0.8)" // Dark background
+          );
+        }
+      }
     }
 
     updateDimensions(measurements);
@@ -910,6 +938,9 @@
     side,
     labelOffsetPx = 0,
     tooltipData = null,
+    color = "#16e1ff",
+    textColor = "#ffffff",
+    backgroundColor = "rgba(0, 0, 0, 0.6)"
   ) {
     // Laske suuntavektori ja kohtisuora vektori
     const dx = pointB.x - pointA.x;
@@ -931,6 +962,14 @@
     } else if (side === "right") {
       perpX = -perpX;
       perpY = -perpY;
+    } else if (side === "top") {
+      // Ylös = negatiivinen y-suunta
+      perpX = 0;
+      perpY = -1;
+    } else if (side === "bottom") {
+      // Alas = positiivinen y-suunta
+      perpX = 0;
+      perpY = 1;
     } else if (side === "vertical" || side === "horizontal") {
       perpX = 0;
       perpY = 0;
@@ -961,7 +1000,7 @@
     ctx.save();
 
     // Piirretään mittaviiva
-    ctx.strokeStyle = "#16e1ff";
+    ctx.strokeStyle = color;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(canvasA.x, canvasA.y);
@@ -1000,7 +1039,7 @@
     const labelX = midX + autoOffsetX + labelOffsetPx;
     const labelY = midY;
 
-    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillStyle = backgroundColor;
     ctx.fillRect(
       labelX - boxWidth / 2,
       labelY - boxHeight / 2,
@@ -1008,7 +1047,7 @@
       boxHeight,
     );
 
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = textColor;
     ctx.fillText(text, labelX, labelY);
 
     // Store hit area if tooltip data is provided
@@ -1095,6 +1134,12 @@
         event.currentTarget.dataset.fullfield === "men"
           ? fieldProfileMen
           : fieldProfileWomen;
+      // Reset editable points when changing field profile
+      editablePoints = {
+        homePathStart: null,
+        homePathMid: null,
+        homePathEnd: null
+      };
       resizeCanvas();
     });
   });

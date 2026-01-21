@@ -1157,8 +1157,8 @@
   }
 
   function handleCanvasHover(event) {
-    // In edit mode, check for handle hover
-    if (editMode && showMeasurementsOnField) {
+    // In edit mode, check for handle hover but still show tooltips when not dragging
+    if (editMode && showMeasurementsOnField && !draggingHandle) {
       const pos = getCanvasMousePosition(event);
       const fieldPos = fromCanvas(pos);
       
@@ -1170,14 +1170,20 @@
         if (dist < handleRadius) {
           canvas.style.cursor = 'grab';
           overHandle = true;
-          break;
+          tooltip.style.display = 'none';
+          return;
         }
       }
       
-      if (!overHandle && !draggingHandle) {
+      // If not over handle, show tooltips normally
+      if (!overHandle) {
         canvas.style.cursor = 'default';
+        // Fall through to normal tooltip behavior
       }
-      
+    }
+    
+    // Hide tooltips while dragging
+    if (draggingHandle) {
       tooltip.style.display = 'none';
       return;
     }
@@ -1300,14 +1306,26 @@
   if (editModeToggle) {
     editModeToggle.addEventListener("click", () => {
       editMode = !editMode;
-      editModeToggle.textContent = editMode ? "Tallenna mittaukset" : "Muokkaa mittauksia";
+      editModeToggle.textContent = editMode ? "Sulje muokkaustila" : "Muokkaa mittauksia";
       editModeToggle.classList.toggle("active", editMode);
       
       if (!editMode) {
         draggingHandle = null;
+        activeSnapPoint = null;
       }
       
       drawField();
+    });
+    
+    // Double-click to reset points to original positions
+    editModeToggle.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      if (confirm("Palauta kotipolun pisteet alkuperäisiin paikkoihin?")) {
+        editablePoints.homePathStart = null;
+        editablePoints.homePathMid = null;
+        editablePoints.homePathEnd = null;
+        drawField();
+      }
     });
   }
 

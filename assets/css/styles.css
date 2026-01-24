@@ -792,21 +792,23 @@ canvas:hover {
   align-items: center;
   justify-content: center;
   text-align: center;
-  backdrop-filter: blur(6px);
   overflow: hidden;
 }
 
-.reset-edits:hover {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3C/svg%3E")
-      center/24px 24px no-repeat,
-    linear-gradient(135deg, rgba(60, 120, 190, 0.55), rgba(35, 85, 150, 0.6));
-  border-color: rgba(150, 200, 255, 0.9);
-  transform: scale(1.08);
-  box-shadow:
-    0 4px 25px rgba(50, 120, 220, 0.6),
-    0 0 30px rgba(100, 180, 255, 0.4),
-    inset 0 1px 3px rgba(255, 255, 255, 0.25);
+/* Hover effects only on devices with hover capability (not touch screens) */
+@media (hover: hover) {
+  .reset-edits:hover {
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3C/svg%3E")
+        center/24px 24px no-repeat,
+      linear-gradient(135deg, rgba(60, 120, 190, 0.55), rgba(35, 85, 150, 0.6));
+    border-color: rgba(150, 200, 255, 0.9);
+    transform: scale(1.08);
+    box-shadow:
+      0 4px 25px rgba(50, 120, 220, 0.6),
+      0 0 30px rgba(100, 180, 255, 0.4),
+      inset 0 1px 3px rgba(255, 255, 255, 0.25);
+  }
 }
 
 .reset-edits:active {
@@ -847,7 +849,6 @@ canvas:hover {
   box-shadow:
     0 3px 15px rgba(30, 100, 200, 0.4),
     inset 0 1px 2px rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(6px);
 }
 
 .zoom-btn {
@@ -863,8 +864,8 @@ canvas:hover {
   flex-shrink: 0;
   background: linear-gradient(
     135deg,
-    rgba(60, 110, 170, 0.9),
-    rgba(40, 85, 140, 0.92)
+    rgba(40, 80, 130, 0.9),
+    rgba(25, 60, 110, 0.92)
   );
   border: 2px solid rgba(120, 180, 255, 0.8);
   border-radius: 50%;
@@ -894,22 +895,59 @@ canvas:hover {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.95)' stroke-width='2.5' stroke-linecap='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E");
 }
 
-.zoom-btn:hover:not(:disabled) {
-  background-color: rgba(70, 110, 160, 0.7);
-  border-color: rgba(150, 200, 255, 1);
-  transform: scale(1.08);
-  box-shadow:
-    0 2px 12px rgba(50, 120, 220, 0.5),
-    0 0 15px rgba(100, 180, 255, 0.3),
-    inset 0 1px 2px rgba(255, 255, 255, 0.25);
+/* Reset icon (home/center) */
+.zoom-btn.zoom-reset {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.95)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12l9-9 9 9M5 10v10h4v-6h6v6h4V10'/%3E%3C/svg%3E");
 }
 
-.zoom-btn.zoom-in:hover:not(:disabled) {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'/%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E");
-}
+/* Hover effects only on devices with hover capability (not touch screens) */
+@media (hover: hover) {
+  .zoom-btn:hover:not(:disabled) {
+    background: linear-gradient(
+      135deg,
+      rgba(60, 120, 190, 0.95),
+      rgba(40, 95, 160, 0.95)
+    );
+    border-color: rgba(150, 200, 255, 1);
+    transform: scale(1.08);
+    box-shadow:
+      0 2px 12px rgba(50, 120, 220, 0.5),
+      0 0 15px rgba(100, 180, 255, 0.3),
+      inset 0 1px 2px rgba(255, 255, 255, 0.25);
+  }
 
-.zoom-btn.zoom-out:hover:not(:disabled) {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E");
+  .zoom-btn.zoom-in:hover:not(:disabled) {
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'/%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E")
+        center/20px 20px no-repeat,
+      linear-gradient(
+        135deg,
+        rgba(60, 120, 190, 0.95),
+        rgba(40, 95, 160, 0.95)
+      );
+  }
+
+  .zoom-btn.zoom-out:hover:not(:disabled) {
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E")
+        center/20px 20px no-repeat,
+      linear-gradient(
+        135deg,
+        rgba(60, 120, 190, 0.95),
+        rgba(40, 95, 160, 0.95)
+      );
+  }
+
+  .zoom-btn.zoom-reset:hover:not(:disabled) {
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12l9-9 9 9M5 10v10h4v-6h6v6h4V10'/%3E%3C/svg%3E")
+        center/20px 20px no-repeat,
+      linear-gradient(
+        135deg,
+        rgba(60, 120, 190, 0.95),
+        rgba(40, 95, 160, 0.95)
+      );
+  }
 }
 
 .zoom-btn:active:not(:disabled) {

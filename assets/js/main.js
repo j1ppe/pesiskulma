@@ -34,6 +34,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const resetEdits = document.getElementById("resetEdits");
   const zoomIn = document.getElementById("zoomIn");
   const zoomOut = document.getElementById("zoomOut");
+  const zoomReset = document.getElementById("zoomReset");
   const zoomLevelDisplay = document.getElementById("zoomLevel");
   const tooltip = document.getElementById("measurementTooltip");
   const infoToggle = document.getElementById("infoToggle");
@@ -453,8 +454,8 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       // Kentän leveys takarajalla
       const halfWidth = state.fieldProfile.backBoundary.width / 2;
       drawMeasurement({
-        pointA: { x: -halfWidth, y: backLineY - 3 },
-        pointB: { x: halfWidth, y: backLineY - 3 },
+        pointA: { x: -halfWidth, y: backLineY - 12 },
+        pointB: { x: halfWidth, y: backLineY - 12 },
         distance: geometry.measurements.width,
         label: "Kentän leveys",
         offset: 0,
@@ -798,13 +799,29 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   // Zoom button click handlers
   if (zoomIn) {
     zoomIn.addEventListener("click", () => {
-      handleZoom(0.25);
+      // Zoom to canvas center
+      const centerX = canvas.clientWidth / 2;
+      const centerY = canvas.clientHeight / 2;
+      handleZoom(0.25, centerX, centerY);
     });
   }
 
   if (zoomOut) {
     zoomOut.addEventListener("click", () => {
-      handleZoom(-0.25);
+      // Zoom to canvas center
+      const centerX = canvas.clientWidth / 2;
+      const centerY = canvas.clientHeight / 2;
+      handleZoom(-0.25, centerX, centerY);
+    });
+  }
+
+  if (zoomReset) {
+    zoomReset.addEventListener("click", () => {
+      // Reset zoom and pan to initial state
+      store.setZoom(1.0);
+      store.setPan(0, 0);
+      updateZoomDisplay();
+      drawField();
     });
   }
 

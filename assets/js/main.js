@@ -36,6 +36,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const zoomOut = document.getElementById("zoomOut");
   const zoomReset = document.getElementById("zoomReset");
   const zoomLevelDisplay = document.getElementById("zoomLevel");
+  const customMeasureToggle = document.getElementById("customMeasureToggle");
   const tooltip = document.getElementById("measurementTooltip");
   const infoToggle = document.getElementById("infoToggle");
   const infoCopy = document.getElementById("infoCopy");
@@ -573,6 +574,87 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       }
     }
 
+    // Draw custom measurements
+    if (state.customMeasurements && state.customMeasurements.length > 0) {
+      state.customMeasurements.forEach((measurement) => {
+        const startCanvas = toCanvas(measurement.start, origin, scale);
+        const endCanvas = toCanvas(measurement.end, origin, scale);
+
+        // Draw line
+        ctx.strokeStyle = "#16e1ff"; // Cyan color
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(startCanvas.x, startCanvas.y);
+        ctx.lineTo(endCanvas.x, endCanvas.y);
+        ctx.stroke();
+
+        // Draw endpoints
+        ctx.fillStyle = "#16e1ff";
+        ctx.beginPath();
+        ctx.arc(startCanvas.x, startCanvas.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(endCanvas.x, endCanvas.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Calculate and draw distance
+        const dx = measurement.end.x - measurement.start.x;
+        const dy = measurement.end.y - measurement.start.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        const midX = (startCanvas.x + endCanvas.x) / 2;
+        const midY = (startCanvas.y + endCanvas.y) / 2;
+
+        ctx.save();
+        ctx.font = "bold 16px sans-serif";
+        ctx.fillStyle = "#16e1ff";
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
+        ctx.lineWidth = 3;
+        const text = `${distance.toFixed(2)} m`;
+        const textWidth = ctx.measureText(text).width;
+        ctx.strokeText(text, midX - textWidth / 2, midY - 10);
+        ctx.fillText(text, midX - textWidth / 2, midY - 10);
+        ctx.restore();
+      });
+    }
+
+    // Draw custom measurement preview
+    if (state.customMeasurementPreview && canvas.dataset.previewEnd) {
+      try {
+        const previewEnd = JSON.parse(canvas.dataset.previewEnd);
+        const startCanvas = toCanvas(
+          state.customMeasurementPreview,
+          origin,
+          scale,
+        );
+        const endCanvas = toCanvas(previewEnd, origin, scale);
+
+        // Draw preview line (dashed)
+        ctx.strokeStyle = "rgba(22, 225, 255, 0.6)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(startCanvas.x, startCanvas.y);
+        ctx.lineTo(endCanvas.x, endCanvas.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw preview start point
+        ctx.fillStyle = "#16e1ff";
+        ctx.beginPath();
+        ctx.arc(startCanvas.x, startCanvas.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw preview end point (semi-transparent)
+        ctx.fillStyle = "rgba(22, 225, 255, 0.6)";
+        ctx.beginPath();
+        ctx.arc(endCanvas.x, endCanvas.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      } catch (e) {
+        // Ignore JSON parse errors
+      }
+    }
+
     // Restore canvas context (end zoom/pan transformation)
     ctx.restore();
   };
@@ -825,6 +907,25 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     });
   }
 
+  // Custom measurement toggle
+  if (customMeasureToggle) {
+    customMeasureToggle.addEventListener("click", () => {
+      const state = store.getState();
+      const newMode = !state.customMeasurementMode;
+      store.setState({ customMeasurementMode: newMode });
+
+      // Update button appearance
+      customMeasureToggle.classList.toggle("active", newMode);
+
+      // Clear any preview if disabling
+      if (!newMode) {
+        store.setState({ customMeasurementPreview: null });
+      }
+
+      drawField();
+    });
+  }
+
   // Mouse wheel zoom (desktop)
   canvas.addEventListener(
     "wheel",
@@ -941,15 +1042,70 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     }
   };
 
-  // Wrap existing  handlers with pan logic
+  // Wrap existing handlers with pan and custom measurement logic
   const originalMouseDownHandler = mouseDownHandler;
   const wrappedMouseDownHandler = (event) => {
+    const state = store.getState();
+
+    // Handle custom measurement mode
+    if (state.customMeasurementMode) {
+      const canvasPos = getCanvasMousePosition(event, canvas);
+      const fieldPos = fromCanvasWithZoom(
+        canvasPos,
+        canvasDimensions.origin,
+        canvasDimensions.scale,
+        state.zoomLevel,
+        state.panX,
+        state.panY,
+      );
+
+      // If we have a preview (first point already set), complete the measurement
+      if (state.customMeasurementPreview) {
+        const newMeasurement = {
+          id: Date.now(),
+          start: state.customMeasurementPreview,
+          end: fieldPos,
+        };
+
+        const measurements = [...state.customMeasurements, newMeasurement];
+        store.setState({
+          customMeasurements: measurements,
+          customMeasurementPreview: null,
+        });
+        drawField();
+      } else {
+        // Set first point
+        store.setState({ customMeasurementPreview: fieldPos });
+        drawField();
+      }
+      return; // Don't execute normal mouse down logic
+    }
+
     handlePanStart(event.clientX, event.clientY);
     originalMouseDownHandler(event);
   };
 
   const originalMouseMoveHandler = mouseMoveHandler;
   const wrappedMouseMoveHandler = (event) => {
+    const state = store.getState();
+
+    // Update custom measurement preview
+    if (state.customMeasurementMode && state.customMeasurementPreview) {
+      const canvasPos = getCanvasMousePosition(event, canvas);
+      const fieldPos = fromCanvasWithZoom(
+        canvasPos,
+        canvasDimensions.origin,
+        canvasDimensions.scale,
+        state.zoomLevel,
+        state.panX,
+        state.panY,
+      );
+
+      // Update cursor position for preview (we'll draw this in drawField)
+      canvas.dataset.previewEnd = JSON.stringify(fieldPos);
+      drawField();
+    }
+
     handlePanMove(event.clientX, event.clientY);
     originalMouseMoveHandler(event);
   };

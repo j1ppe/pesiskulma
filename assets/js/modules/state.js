@@ -137,6 +137,9 @@ export const createInitialState = () => ({
   fieldProfile: fieldProfileWomen,
   showMeasurementsOnField: true,
   editMode: true,
+  customMeasurementMode: false,
+  customMeasurements: [],
+  customMeasurementPreview: null,
   draggingHandle: null,
   editablePoints: {
     homePathStart: null,

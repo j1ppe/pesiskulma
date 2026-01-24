@@ -146,6 +146,13 @@ export const createInitialState = () => ({
   snapTargets: [],
   activeSnapPoint: null,
   measurementHitAreas: [],
+  // Zoom and pan state
+  zoomLevel: 1.0,
+  minZoom: 0.5,
+  maxZoom: 3.0,
+  panX: 0,
+  panY: 0,
+  isPanning: false,
 });
 
 /**
@@ -256,6 +263,45 @@ class StateStore {
       ...state,
       showMeasurementsOnField: !state.showMeasurementsOnField,
     }));
+  }
+
+  /**
+   * Set zoom level (clamped to min/max)
+   * @param {number} zoomLevel - New zoom level
+   */
+  setZoom(zoomLevel) {
+    this.setState((state) => ({
+      ...state,
+      zoomLevel: Math.max(state.minZoom, Math.min(state.maxZoom, zoomLevel)),
+    }));
+  }
+
+  /**
+   * Set pan offset
+   * @param {number} panX - X offset in pixels
+   * @param {number} panY - Y offset in pixels
+   */
+  setPan(panX, panY) {
+    this.setState({ panX, panY });
+  }
+
+  /**
+   * Set panning state
+   * @param {boolean} isPanning - Whether panning is active
+   */
+  setIsPanning(isPanning) {
+    this.setState({ isPanning });
+  }
+
+  /**
+   * Reset zoom and pan to defaults
+   */
+  resetZoomPan() {
+    this.setState({
+      zoomLevel: 1.0,
+      panX: 0,
+      panY: 0,
+    });
   }
 }
 

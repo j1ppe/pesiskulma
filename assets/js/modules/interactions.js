@@ -9,7 +9,7 @@ import {
   nearestPointOnLine,
   pointToLineDistance,
 } from "./geometry.js";
-import { fromCanvas } from "./rendering.js";
+import { fromCanvasWithZoom } from "./rendering.js";
 import { SNAP_THRESHOLD } from "./state.js";
 
 /**
@@ -167,7 +167,14 @@ export const createHoverHandler = ({
     const origin = getOrigin();
     const scale = getScale();
     const canvasPos = getCanvasMousePosition(event, canvas);
-    const fieldPos = fromCanvas(canvasPos, origin, scale);
+    const fieldPos = fromCanvasWithZoom(
+      canvasPos,
+      origin,
+      scale,
+      state.zoomLevel,
+      state.panX,
+      state.panY,
+    );
 
     // In edit mode, check for handle hover
     if (
@@ -285,7 +292,14 @@ export const createMouseDownHandler = ({
     const origin = getOrigin();
     const scale = getScale();
     const canvasPos = getCanvasMousePosition(event, canvas);
-    const fieldPos = fromCanvas(canvasPos, origin, scale);
+    const fieldPos = fromCanvasWithZoom(
+      canvasPos,
+      origin,
+      scale,
+      state.zoomLevel,
+      state.panX,
+      state.panY,
+    );
 
     const handleUnder = getHandleUnderMouse(
       fieldPos,
@@ -326,7 +340,14 @@ export const createMouseMoveHandler = ({
     const origin = getOrigin();
     const scale = getScale();
     const canvasPos = getCanvasMousePosition(event, canvas);
-    let fieldPos = fromCanvas(canvasPos, origin, scale);
+    let fieldPos = fromCanvasWithZoom(
+      canvasPos,
+      origin,
+      scale,
+      state.zoomLevel,
+      state.panX,
+      state.panY,
+    );
 
     // Try to snap to nearest target
     const snapPoint = findNearestSnap(fieldPos, state.snapTargets);

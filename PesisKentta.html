@@ -50,9 +50,26 @@
         id="resetEdits"
         title="Palauta alkuperäiset arvot"
         style="display: none"
-      >
-        ×
-      </button>
+        aria-label="Tyhjennä muutokset"
+      ></button>
+
+      <!-- Zoom controls -->
+      <div class="zoom-controls" id="zoomControls">
+        <button
+          class="zoom-btn zoom-out"
+          id="zoomOut"
+          title="Loitonna"
+          aria-label="Loitonna"
+        ></button>
+        <span class="zoom-level" id="zoomLevel">100%</span>
+        <button
+          class="zoom-btn zoom-in"
+          id="zoomIn"
+          title="Lähennä"
+          aria-label="Lähennä"
+        ></button>
+      </div>
+
       <canvas id="fullFieldCanvas"></canvas>
       <div id="measurementTooltip" class="measurement-tooltip"></div>
     </section>

@@ -1,0 +1,17 @@
+# Agent and AI configuration folders
+.agents/
+.claude/
+
+# Node modules
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

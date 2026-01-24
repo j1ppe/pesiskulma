@@ -22,7 +22,7 @@ import {
   drawEditHandles,
   drawLine,
   drawSnapIndicator,
-  fromCanvas,
+  fromCanvasWithZoom,
   toCanvas,
 } from "./modules/rendering.js";
 import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
@@ -32,6 +32,9 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const canvas = document.getElementById("fullFieldCanvas");
   const fieldButtons = document.querySelectorAll("[data-fullfield]");
   const resetEdits = document.getElementById("resetEdits");
+  const zoomIn = document.getElementById("zoomIn");
+  const zoomOut = document.getElementById("zoomOut");
+  const zoomLevelDisplay = document.getElementById("zoomLevel");
   const tooltip = document.getElementById("measurementTooltip");
   const infoToggle = document.getElementById("infoToggle");
   const infoCopy = document.getElementById("infoCopy");
@@ -170,6 +173,11 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const { origin, scale } = canvasDimensions;
+
+    // Apply zoom and pan transformation
+    ctx.save();
+    ctx.translate(state.panX, state.panY);
+    ctx.scale(state.zoomLevel, state.zoomLevel);
 
     // Reset measurement hit areas
     const measurementHitAreas = [];
@@ -563,6 +571,9 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         drawSnapIndicator(ctx, state.activeSnapPoint, origin, scale);
       }
     }
+
+    // Restore canvas context (end zoom/pan transformation)
+    ctx.restore();
   };
 
   /**
@@ -604,6 +615,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     if (resetEdits) {
       updateResetButtonPosition();
     }
+    updateZoomControlsPosition();
   };
 
   // Event listeners
@@ -715,6 +727,28 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     resetEdits.style.top = `${top}px`;
   };
 
+  // Update zoom controls position to be on top of the canvas (top-right corner)
+  const updateZoomControlsPosition = () => {
+    const zoomControls = document.getElementById("zoomControls");
+    if (!zoomControls) return;
+
+    // On mobile, use CSS positioning (more reliable)
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (isMobile) return;
+
+    // Get canvas and wrapper positions
+    const canvasRect = canvas.getBoundingClientRect();
+    const wrapper = canvas.parentElement;
+    const wrapperRect = wrapper.getBoundingClientRect();
+
+    // Place at canvas top-right with small margin
+    const right = wrapperRect.right - canvasRect.right + 10;
+    const top = canvasRect.top - wrapperRect.top + 10;
+
+    zoomControls.style.right = `${right}px`;
+    zoomControls.style.top = `${top}px`;
+  };
+
   // Subscribe to state changes to update reset button
   store.subscribe(() => {
     updateResetButtonVisibility();
@@ -724,6 +758,73 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   // Initial update
   updateResetButtonVisibility();
   updateResetButtonPosition();
+  updateZoomControlsPosition();
+
+  // Zoom controls
+  const updateZoomDisplay = () => {
+    const state = store.getState();
+    if (zoomLevelDisplay) {
+      zoomLevelDisplay.textContent = `${Math.round(state.zoomLevel * 100)}%`;
+    }
+    if (zoomOut) {
+      zoomOut.disabled = state.zoomLevel <= 0.5;
+    }
+    if (zoomIn) {
+      zoomIn.disabled = state.zoomLevel >= 3.0;
+    }
+  };
+
+  const handleZoom = (delta, centerX = null, centerY = null) => {
+    const state = store.getState();
+    const oldZoom = state.zoomLevel;
+    const newZoom = Math.max(0.5, Math.min(3.0, oldZoom + delta));
+
+    if (newZoom === oldZoom) return;
+
+    // If center point provided, zoom to that point
+    if (centerX !== null && centerY !== null) {
+      // Adjust pan so the point under cursor stays in same place
+      const zoomRatio = newZoom / oldZoom;
+      const newPanX = centerX - (centerX - state.panX) * zoomRatio;
+      const newPanY = centerY - (centerY - state.panY) * zoomRatio;
+      store.setPan(newPanX, newPanY);
+    }
+
+    store.setZoom(newZoom);
+    updateZoomDisplay();
+    drawField();
+  };
+
+  // Zoom button click handlers
+  if (zoomIn) {
+    zoomIn.addEventListener("click", () => {
+      handleZoom(0.25);
+    });
+  }
+
+  if (zoomOut) {
+    zoomOut.addEventListener("click", () => {
+      handleZoom(-0.25);
+    });
+  }
+
+  // Mouse wheel zoom (desktop)
+  canvas.addEventListener(
+    "wheel",
+    (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const centerX = e.clientX - rect.left;
+      const centerY = e.clientY - rect.top;
+      const delta = e.deltaY < 0 ? 0.1 : -0.1;
+      handleZoom(delta, centerX, centerY);
+    },
+    { passive: false },
+  );
+
+  // Update zoom display initially and on state changes
+  updateZoomDisplay();
+  store.subscribe(updateZoomDisplay);
 
   // Canvas interactions
   const hoverHandler = createHoverHandler({
@@ -768,19 +869,110 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     },
   });
 
+  // Pan and zoom state
+  let panStartPos = null;
+  let panStartState = null;
+
+  // Handle pan start (when clicking/touching empty area)
+  const handlePanStart = (clientX, clientY) => {
+    const state = store.getState();
+    const canvasPos = getCanvasMousePosition({ clientX, clientY }, canvas);
+    const fieldPos = fromCanvasWithZoom(
+      canvasPos,
+      canvasDimensions.origin,
+      canvasDimensions.scale,
+      state.zoomLevel,
+      state.panX,
+      state.panY,
+    );
+
+    // Check if clicking on a handle
+    const handleUnder = getHandleUnderMouse(
+      fieldPos,
+      state.editablePoints,
+      0.5,
+    );
+
+    // Start panning only if not on a handle
+    if (!handleUnder && !state.draggingHandle) {
+      panStartPos = { x: clientX, y: clientY };
+      panStartState = { panX: state.panX, panY: state.panY };
+      store.setIsPanning(true);
+      canvas.style.cursor = "grabbing";
+    }
+  };
+
+  // Handle pan move
+  const handlePanMove = (clientX, clientY) => {
+    const state = store.getState();
+    if (state.isPanning && panStartPos && panStartState) {
+      const dx = clientX - panStartPos.x;
+      const dy = clientY - panStartPos.y;
+      store.setPan(panStartState.panX + dx, panStartState.panY + dy);
+      drawField();
+    }
+  };
+
+  // Handle pan end
+  const handlePanEnd = () => {
+    const state = store.getState();
+    if (state.isPanning) {
+      store.setIsPanning(false);
+      panStartPos = null;
+      panStartState = null;
+      canvas.style.cursor = "default";
+    }
+  };
+
+  // Wrap existing  handlers with pan logic
+  const originalMouseDownHandler = mouseDownHandler;
+  const wrappedMouseDownHandler = (event) => {
+    handlePanStart(event.clientX, event.clientY);
+    originalMouseDownHandler(event);
+  };
+
+  const originalMouseMoveHandler = mouseMoveHandler;
+  const wrappedMouseMoveHandler = (event) => {
+    handlePanMove(event.clientX, event.clientY);
+    originalMouseMoveHandler(event);
+  };
+
+  const originalMouseUpHandler = mouseUpHandler;
+  const wrappedMouseUpHandler = (event) => {
+    handlePanEnd();
+    originalMouseUpHandler(event);
+  };
+
   canvas.addEventListener("mousemove", hoverHandler);
-  canvas.addEventListener("mousedown", mouseDownHandler);
-  canvas.addEventListener("mousemove", mouseMoveHandler);
-  canvas.addEventListener("mouseup", mouseUpHandler);
-  canvas.addEventListener("mouseleave", mouseUpHandler);
+  canvas.addEventListener("mousedown", wrappedMouseDownHandler);
+  canvas.addEventListener("mousemove", wrappedMouseMoveHandler);
+  canvas.addEventListener("mouseup", wrappedMouseUpHandler);
+  canvas.addEventListener("mouseleave", wrappedMouseUpHandler);
 
   // Touch event support for mobile
   let isDragging = false;
   let touchStartPos = null;
+  let initialPinchDistance = null;
+  let initialPinchZoom = null;
+
+  // Helper to calculate distance between two touches
+  const getTouchDistance = (touch1, touch2) => {
+    const dx = touch2.clientX - touch1.clientX;
+    const dy = touch2.clientY - touch1.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
 
   canvas.addEventListener(
     "touchstart",
     (e) => {
+      // Handle pinch-to-zoom with two fingers
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        initialPinchDistance = getTouchDistance(e.touches[0], e.touches[1]);
+        initialPinchZoom = store.getState().zoomLevel;
+        return;
+      }
+
       const touch = e.touches[0];
       if (!touch) return;
 
@@ -800,7 +992,14 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       const origin = canvasDimensions.origin;
       const scale = canvasDimensions.scale;
       const canvasPos = getCanvasMousePosition(mouseEvent, canvas);
-      const fieldPos = fromCanvas(canvasPos, origin, scale);
+      const fieldPos = fromCanvasWithZoom(
+        canvasPos,
+        origin,
+        scale,
+        state.zoomLevel,
+        state.panX,
+        state.panY,
+      );
       const handleUnder = getHandleUnderMouse(
         fieldPos,
         state.editablePoints,
@@ -812,7 +1011,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         isDragging = true;
       }
 
-      mouseDownHandler(mouseEvent);
+      wrappedMouseDownHandler(mouseEvent);
       hoverHandler(mouseEvent);
     },
     { passive: false },
@@ -821,6 +1020,35 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   canvas.addEventListener(
     "touchmove",
     (e) => {
+      // Handle pinch-to-zoom with two fingers
+      if (e.touches.length === 2 && initialPinchDistance !== null) {
+        e.preventDefault();
+        const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
+        const scale = currentDistance / initialPinchDistance;
+        const newZoom = Math.max(0.5, Math.min(3.0, initialPinchZoom * scale));
+
+        // Calculate center point between fingers
+        const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const rect = canvas.getBoundingClientRect();
+        const canvasCenterX = centerX - rect.left;
+        const canvasCenterY = centerY - rect.top;
+
+        // Adjust pan to zoom towards center
+        const state = store.getState();
+        const zoomRatio = newZoom / state.zoomLevel;
+        const newPanX =
+          canvasCenterX - (canvasCenterX - state.panX) * zoomRatio;
+        const newPanY =
+          canvasCenterY - (canvasCenterY - state.panY) * zoomRatio;
+
+        store.setZoom(newZoom);
+        store.setPan(newPanX, newPanY);
+        updateZoomDisplay();
+        drawField();
+        return;
+      }
+
       const touch = e.touches[0];
       if (!touch) return;
 
@@ -846,7 +1074,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         clientY: touch.clientY,
       });
 
-      mouseMoveHandler(mouseEvent);
+      wrappedMouseMoveHandler(mouseEvent);
       hoverHandler(mouseEvent);
     },
     { passive: false },
@@ -855,6 +1083,12 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   canvas.addEventListener(
     "touchend",
     (e) => {
+      // Reset pinch zoom state
+      if (e.touches.length < 2) {
+        initialPinchDistance = null;
+        initialPinchZoom = null;
+      }
+
       const touch = e.changedTouches[0];
       if (!touch) return;
 
@@ -868,7 +1102,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         clientY: touch.clientY,
       });
 
-      mouseUpHandler(mouseEvent);
+      wrappedMouseUpHandler(mouseEvent);
 
       // Show tooltip on tap (not drag)
       if (wasJustTap) {
@@ -893,7 +1127,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
           clientX: touch.clientX,
           clientY: touch.clientY,
         });
-        mouseUpHandler(mouseEvent);
+        wrappedMouseUpHandler(mouseEvent);
       }
       isDragging = false;
       touchStartPos = null;
@@ -915,7 +1149,14 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     const origin = canvasDimensions.origin;
     const scale = canvasDimensions.scale;
     const canvasPos = getCanvasMousePosition(e, canvas);
-    const fieldPos = fromCanvas(canvasPos, origin, scale);
+    const fieldPos = fromCanvasWithZoom(
+      canvasPos,
+      origin,
+      scale,
+      state.zoomLevel,
+      state.panX,
+      state.panY,
+    );
 
     // Check if clicked on homePathStart handle
     const handleUnder = getHandleUnderMouse(

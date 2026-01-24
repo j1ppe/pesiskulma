@@ -30,6 +30,37 @@ export const fromCanvas = (canvasPoint, origin, scale) => ({
 });
 
 /**
+ * Coordinate transformation: canvas coordinates to field coordinates with zoom/pan
+ * @param {Point} canvasPoint - Point in canvas coordinates (screen pixels)
+ * @param {Point} origin - Canvas origin
+ * @param {number} scale - Pixels per meter
+ * @param {number} zoomLevel - Zoom level (1.0 = 100%)
+ * @param {number} panX - Pan offset X in pixels
+ * @param {number} panY - Pan offset Y in pixels
+ * @returns {Point} Point in field coordinates
+ */
+export const fromCanvasWithZoom = (
+  canvasPoint,
+  origin,
+  scale,
+  zoomLevel,
+  panX,
+  panY,
+) => {
+  // Reverse the transformation applied in rendering:
+  // 1. Remove pan offset
+  // 2. Reverse zoom
+  // 3. Convert to field coordinates
+  const transformedX = (canvasPoint.x - panX) / zoomLevel;
+  const transformedY = (canvasPoint.y - panY) / zoomLevel;
+
+  return {
+    x: (transformedX - origin.x) / scale,
+    y: (origin.y - transformedY) / scale,
+  };
+};
+
+/**
  * Draw a simple line on canvas
  * @param {CanvasRenderingContext2D} ctx - Canvas context
  * @param {Point} a - Start point (canvas coordinates)

@@ -566,6 +566,32 @@ canvas:hover {
   animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
+.fullfield-info-toggle {
+  display: none;
+  margin: 0 auto 12px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  align-items: center;
+  gap: 6px;
+}
+
+.fullfield-info-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.fullfield-info-toggle .info-icon {
+  font-size: 1.1em;
+  opacity: 0.8;
+}
+
 .fullfield-copy {
   margin: 0 auto 24px;
   max-width: 720px;
@@ -574,6 +600,43 @@ canvas:hover {
   line-height: 1.6;
   font-size: 1.25rem;
   animation: fadeInUp 0.8s ease-out 0.3s both;
+  overflow: hidden;
+  transition:
+    max-height 0.3s ease-out,
+    opacity 0.3s ease-out;
+}
+
+@media (max-width: 768px) {
+  .fullfield-header {
+    margin: 20px auto 12px;
+  }
+
+  .fullfield-eyebrow {
+    font-size: 0.85rem;
+    margin: 0 0 8px;
+  }
+
+  .fullfield-header h1 {
+    font-size: 2rem;
+    margin: 0 0 10px;
+  }
+
+  .fullfield-info-toggle {
+    display: inline-flex;
+  }
+
+  .fullfield-copy {
+    max-height: 0;
+    opacity: 0;
+    margin: 0 auto;
+    font-size: 1rem;
+  }
+
+  .fullfield-copy.expanded {
+    max-height: 200px;
+    opacity: 1;
+    margin: 0 auto 16px;
+  }
 }
 
 .fullfield-selector {
@@ -737,6 +800,13 @@ canvas:hover {
   margin: 0 auto 30px;
   padding: 0 16px;
   position: relative;
+}
+
+@media (max-width: 768px) {
+  .fullfield-canvas-wrap {
+    margin: 0 auto 10px;
+    padding: 0 4px;
+  }
 }
 
 @keyframes tooltipSlideIn {

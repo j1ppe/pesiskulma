@@ -33,6 +33,8 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const fieldButtons = document.querySelectorAll("[data-fullfield]");
   const resetEdits = document.getElementById("resetEdits");
   const tooltip = document.getElementById("measurementTooltip");
+  const infoToggle = document.getElementById("infoToggle");
+  const infoCopy = document.getElementById("infoCopy");
   const dimensionTargets = {
     first: document.querySelector("[data-dimension='first']"),
     second: document.querySelector("[data-dimension='second']"),
@@ -606,6 +608,14 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
   // Event listeners
   window.addEventListener("resize", resizeCanvas);
+
+  // Info toggle for mobile
+  if (infoToggle && infoCopy) {
+    infoToggle.addEventListener("click", () => {
+      const isExpanded = infoCopy.classList.toggle("expanded");
+      infoToggle.setAttribute("aria-expanded", isExpanded.toString());
+    });
+  }
 
   // Field profile buttons
   fieldButtons.forEach((button) => {

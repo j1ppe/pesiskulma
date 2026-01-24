@@ -313,16 +313,23 @@ export const calculateCanvasDimensions = (
     topMargin +
     bottomMargin;
 
-  const chromeSpacing = 32;
+  const isMobile = viewportWidth <= 768;
+  
+  // Mobile: minimize chrome to maximize field size
+  const chromeSpacing = isMobile ? 4 : 32;
+  const effectiveLegendHeight = isMobile ? 0 : legendHeight;
+  const effectiveFooterHeight = isMobile ? 0 : footerHeight;
+  
   const availableHeight =
     viewportHeight -
-    (selectorHeight + legendHeight + footerHeight + chromeSpacing);
+    (selectorHeight + effectiveLegendHeight + effectiveFooterHeight + chromeSpacing);
 
-  const horizontalGutter = 12;
+  const horizontalGutter = isMobile ? 4 : 12;
   const maxCanvasWidth = Math.max(viewportWidth - horizontalGutter * 2, 220);
 
-  const paddingX = Math.max(4, Math.min(10, viewportWidth * 0.008));
-  const paddingY = Math.max(2, Math.min(8, viewportHeight * 0.008));
+  // Smaller padding on mobile for maximum field size
+  const paddingX = isMobile ? 2 : Math.max(4, Math.min(10, viewportWidth * 0.008));
+  const paddingY = isMobile ? 2 : Math.max(2, Math.min(8, viewportHeight * 0.008));
 
   const widthScale = (maxCanvasWidth - paddingX * 2) / fieldWidth;
   const heightScaleRaw = (availableHeight - paddingY * 2) / fieldHeight;

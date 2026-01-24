@@ -140,13 +140,16 @@ export const createInitialState = () => ({
   customMeasurementMode: false,
   customMeasurements: [],
   customMeasurementPreview: null,
+  customMeasurementDragging: false,
+  showDebugSnap: false,
   draggingHandle: null,
   editablePoints: {
     homePathStart: null,
     homePathMid: null,
     homePathEnd: null,
   },
-  snapTargets: [],
+  snapTargets: [], // For normal edit mode (from geometry.js)
+  customSnapTargets: [], // For custom measurement mode
   activeSnapPoint: null,
   measurementHitAreas: [],
   // Zoom and pan state

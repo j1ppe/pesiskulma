@@ -1104,6 +1104,37 @@ canvas:hover {
   }
 }
 
+/* Debug snap toggle */
+.debug-snap-toggle {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255, 165, 0, 0.9);
+  color: white;
+  border: 2px solid rgba(255, 140, 0, 0.95);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+@media (hover: hover) {
+  .debug-snap-toggle:hover {
+    background: rgba(255, 140, 0, 0.95);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.debug-snap-toggle.active {
+  background: #ff6347;
+  border-color: #ff4500;
+}
+
 .fullfield-canvas-wrap {
   max-width: 1100px;
   margin: 0 auto 30px;

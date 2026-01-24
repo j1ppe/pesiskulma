@@ -62,6 +62,267 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   };
 
   /**
+   * Generate snap targets from field geometry
+   * @param {Object} geometry - Field geometry
+   * @returns {Array<{x: number, y: number}>} Array of snap target points
+   */
+  const generateSnapTargets = (geometry) => {
+    const targets = [];
+    const { fieldProfile } = store.getState();
+
+    // Helper function to add points along a line
+    const addLinePoints = (start, end, numPoints = 50) => {
+      for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints;
+        targets.push({
+          x: start.x + (end.x - start.x) * t,
+          y: start.y + (end.y - start.y) * t,
+        });
+      }
+    };
+
+    // Helper function to add arc points
+    const addArcPoints = (
+      centerX,
+      centerY,
+      radius,
+      startAngle,
+      endAngle,
+      numPoints = 50,
+    ) => {
+      for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints;
+        const angle = startAngle + (endAngle - startAngle) * t;
+        targets.push({
+          x: centerX + radius * Math.cos(angle),
+          y: centerY + radius * Math.sin(angle),
+        });
+      }
+    };
+
+    // Home plate center
+    targets.push({ x: 0, y: 0 });
+
+    // Home plate circle (syöttölautanen) - täysi ympyrä
+    addArcPoints(0, 0, fieldProfile.homePlate.radius, 0, Math.PI * 2);
+
+    // Home left to home right
+    if (geometry.homeLeft && geometry.homeRight) {
+      addLinePoints(geometry.homeLeft, geometry.homeRight);
+    }
+
+    // Diagonal lines (viistoviivat)
+    if (geometry.homeLeft && geometry.diagonalLeftEnd) {
+      addLinePoints(geometry.homeLeft, geometry.diagonalLeftEnd);
+    }
+    if (geometry.homeRight && geometry.diagonalRightEnd) {
+      addLinePoints(geometry.homeRight, geometry.diagonalRightEnd);
+    }
+
+    // Vertical lines (pystyviivat)
+    if (geometry.diagonalLeftEnd && geometry.leftVerticalEnd) {
+      addLinePoints(geometry.diagonalLeftEnd, geometry.leftVerticalEnd);
+    }
+    if (geometry.diagonalRightEnd && geometry.rightVerticalEnd) {
+      addLinePoints(geometry.diagonalRightEnd, geometry.rightVerticalEnd);
+    }
+
+    // Back boundary (takaraja) - OIKEA PAIKKA
+    if (geometry.leftVerticalEnd && geometry.rightVerticalEnd) {
+      addLinePoints(geometry.leftVerticalEnd, geometry.rightVerticalEnd);
+    }
+
+    // Home line
+    if (geometry.homeLineSegment) {
+      addLinePoints(
+        geometry.homeLineSegment.start,
+        geometry.homeLineSegment.end,
+      );
+    }
+
+    // Original home path (kotipolku)
+    if (geometry.originalHomePathFirstLine) {
+      addLinePoints(
+        geometry.originalHomePathFirstLine.start,
+        geometry.originalHomePathFirstLine.end,
+      );
+    }
+    if (geometry.originalHomePathSecondLine) {
+      addLinePoints(
+        geometry.originalHomePathSecondLine.start,
+        geometry.originalHomePathSecondLine.end,
+      );
+    }
+
+    // First to second, second to third (pesurien väliset viivat)
+    if (geometry.firstToSecond) {
+      addLinePoints(geometry.firstToSecond.start, geometry.firstToSecond.end);
+    }
+    if (geometry.secondToThird) {
+      addLinePoints(geometry.secondToThird.start, geometry.secondToThird.end);
+    }
+
+    // First to second extension (ykköspesän sulkeva viiva)
+    if (geometry.firstToSecondExtension) {
+      addLinePoints(
+        geometry.firstToSecondExtension.start,
+        geometry.firstToSecondExtension.end,
+      );
+    }
+
+    // Second and third base lines (pesurien lähtöviivat)
+    const secondBaseLineY =
+      geometry.secondBaseCenter.y - fieldProfile.baseRadius;
+    const thirdBaseLineY = geometry.thirdBaseCenter.y - fieldProfile.baseRadius;
+
+    // Second base line (extends right)
+    addLinePoints(
+      { x: geometry.secondBaseCenter.x, y: secondBaseLineY },
+      {
+        x: geometry.secondBaseCenter.x + fieldProfile.baseLineLength,
+        y: secondBaseLineY,
+      },
+    );
+
+    // Third base line (extends left, toward home)
+    addLinePoints(
+      { x: geometry.thirdBaseCenter.x, y: thirdBaseLineY },
+      {
+        x: geometry.thirdBaseCenter.x - fieldProfile.baseLineLength,
+        y: thirdBaseLineY,
+      },
+    );
+
+    // Base arcs (pesurikaaret)
+    const baseRadius = fieldProfile.baseRadius;
+
+    // First base - quarter circle (neljännesympyrä)
+    if (geometry.firstBaseCenter && geometry.secondBaseCenter) {
+      // Calculate angles in FIELD coordinates (not canvas)
+      const leftDir = {
+        x: Math.sin((fieldProfile.battingSector.leftAngleDeg * Math.PI) / 180),
+        y: Math.cos((fieldProfile.battingSector.leftAngleDeg * Math.PI) / 180),
+      };
+
+      // Angle from first base to second base in FIELD coordinates
+      const angleToSecond = Math.atan2(
+        geometry.secondBaseCenter.y - geometry.firstBaseCenter.y,
+        geometry.secondBaseCenter.x - geometry.firstBaseCenter.x,
+      );
+
+      // Left line angle in FIELD coordinates
+      const leftLineAngle = Math.atan2(leftDir.y, leftDir.x);
+
+      addArcPoints(
+        geometry.firstBaseCenter.x,
+        geometry.firstBaseCenter.y,
+        baseRadius,
+        leftLineAngle,
+        angleToSecond,
+      );
+    }
+
+    // Second base - half circle (puoliympyrä)
+    if (geometry.secondBaseCenter) {
+      addArcPoints(
+        geometry.secondBaseCenter.x,
+        geometry.secondBaseCenter.y,
+        baseRadius,
+        Math.PI / 2,
+        Math.PI * 1.5,
+      );
+    }
+
+    // Third base - half circle (puoliympyrä)
+    if (geometry.thirdBaseCenter) {
+      addArcPoints(
+        geometry.thirdBaseCenter.x,
+        geometry.thirdBaseCenter.y,
+        baseRadius,
+        -Math.PI / 2,
+        Math.PI / 2,
+      );
+    }
+
+    console.log(
+      "[SNAP DEBUG] Generated snap targets:",
+      targets.length,
+      "points",
+    );
+    console.log(
+      "[SNAP DEBUG] Sample targets (first 5):",
+      targets
+        .slice(0, 5)
+        .map((t) => ({ x: t.x.toFixed(1), y: t.y.toFixed(1) })),
+    );
+    return targets;
+  };
+
+  /**
+   * Find nearest snap point to given position
+   * @param {Object} pos - Current position {x, y}
+   * @param {Array} snapTargets - Available snap targets
+   * @param {number} threshold - Maximum distance for snapping (in meters)
+   * @returns {Object|null} Snap point or null if none within threshold
+   */
+  const findNearestSnapPoint = (pos, snapTargets, threshold) => {
+    console.log(
+      "[SNAP DEBUG] Finding snap point for pos:",
+      pos,
+      "threshold:",
+      threshold,
+      "targets:",
+      snapTargets?.length,
+    );
+    if (!snapTargets || snapTargets.length === 0) {
+      console.log("[SNAP DEBUG] No snap targets available");
+      return null;
+    }
+
+    let nearest = null;
+    let minDist = threshold;
+    const allDistances = []; // For debugging
+
+    snapTargets.forEach((target) => {
+      if (
+        !target ||
+        typeof target.x !== "number" ||
+        typeof target.y !== "number"
+      ) {
+        return; // Skip invalid targets
+      }
+      const dist = distanceBetween(pos, target);
+      allDistances.push({ dist, target });
+      if (dist < minDist) {
+        minDist = dist;
+        nearest = target;
+      }
+    });
+
+    // Show 3 closest points
+    allDistances.sort((a, b) => a.dist - b.dist);
+    console.log(
+      "[SNAP DEBUG] 3 nearest points:",
+      allDistances.slice(0, 3).map((d) => ({
+        distance: d.dist.toFixed(2) + "m",
+        point: { x: d.target.x.toFixed(1), y: d.target.y.toFixed(1) },
+      })),
+    );
+
+    if (nearest) {
+      console.log(
+        "[SNAP DEBUG] Found snap point:",
+        nearest,
+        "distance:",
+        minDist,
+      );
+    } else {
+      console.log("[SNAP DEBUG] No snap point within threshold");
+    }
+    return nearest;
+  };
+
+  /**
    * Custom confirm dialog
    * @param {string} message - Message to display
    * @param {string} title - Dialog title (optional)
@@ -556,6 +817,15 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     // Store hit areas in state
     store.setState({ measurementHitAreas });
 
+    // Generate and store snap targets for custom measurements (separate from normal edit snap targets)
+    const customSnapTargets = generateSnapTargets(geometry);
+    console.log(
+      "[SNAP DEBUG] Storing customSnapTargets to state:",
+      customSnapTargets.length,
+      "points",
+    );
+    store.setState((prevState) => ({ ...prevState, customSnapTargets }));
+
     // Update dimension displays
     updateDimensions(geometry.measurements);
 
@@ -581,21 +851,31 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         const endCanvas = toCanvas(measurement.end, origin, scale);
 
         // Draw line
-        ctx.strokeStyle = "#16e1ff"; // Cyan color
+        ctx.strokeStyle = "rgb(255, 165, 0)"; // Orange color
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(startCanvas.x, startCanvas.y);
         ctx.lineTo(endCanvas.x, endCanvas.y);
         ctx.stroke();
 
-        // Draw endpoints
-        ctx.fillStyle = "#16e1ff";
+        // Draw endpoints (white border + orange fill, like edit handles)
+        // Start point
+        ctx.fillStyle = "rgb(255, 165, 0)";
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(startCanvas.x, startCanvas.y, 6, 0, Math.PI * 2);
+        ctx.arc(startCanvas.x, startCanvas.y, 5, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
+
+        // End point
+        ctx.fillStyle = "rgb(255, 165, 0)";
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(endCanvas.x, endCanvas.y, 6, 0, Math.PI * 2);
+        ctx.arc(endCanvas.x, endCanvas.y, 5, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
 
         // Calculate and draw distance
         const dx = measurement.end.x - measurement.start.x;
@@ -607,7 +887,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
         ctx.save();
         ctx.font = "bold 16px sans-serif";
-        ctx.fillStyle = "#16e1ff";
+        ctx.fillStyle = "rgb(255, 165, 0)";
         ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
         ctx.lineWidth = 3;
         const text = `${distance.toFixed(2)} m`;
@@ -630,7 +910,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         const endCanvas = toCanvas(previewEnd, origin, scale);
 
         // Draw preview line (dashed)
-        ctx.strokeStyle = "rgba(22, 225, 255, 0.6)";
+        ctx.strokeStyle = "rgba(255, 165, 0, 0.6)";
         ctx.lineWidth = 2;
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
@@ -639,20 +919,77 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Draw preview start point
-        ctx.fillStyle = "#16e1ff";
-        ctx.beginPath();
-        ctx.arc(startCanvas.x, startCanvas.y, 6, 0, Math.PI * 2);
-        ctx.fill();
+        // Draw snap indicator around start point if snapped
+        const startSnap = findNearestSnapPoint(
+          state.customMeasurementPreview,
+          state.snapTargets,
+          0.4,
+        );
+        if (startSnap) {
+          ctx.strokeStyle = "rgb(255, 165, 0)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(startCanvas.x, startCanvas.y, 10, 0, Math.PI * 2);
+          ctx.stroke();
+        }
 
-        // Draw preview end point (semi-transparent)
-        ctx.fillStyle = "rgba(22, 225, 255, 0.6)";
+        // Draw preview start point (white border + orange fill)
+        ctx.fillStyle = "rgb(255, 165, 0)";
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(endCanvas.x, endCanvas.y, 6, 0, Math.PI * 2);
+        ctx.arc(startCanvas.x, startCanvas.y, 5, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
+
+        // Draw snap indicator around end point if snapped
+        const endSnap = findNearestSnapPoint(
+          previewEnd,
+          state.snapTargets,
+          0.4,
+        );
+        if (endSnap) {
+          ctx.strokeStyle = "rgba(255, 165, 0, 0.6)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(endCanvas.x, endCanvas.y, 10, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Draw preview end point (white border + semi-transparent orange fill)
+        ctx.fillStyle = "rgba(255, 165, 0, 0.6)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(endCanvas.x, endCanvas.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
       } catch (e) {
         // Ignore JSON parse errors
       }
+    }
+
+    // Debug: Draw all snap points
+    if (state.showDebugSnap && state.customSnapTargets) {
+      console.log(
+        "[DEBUG SNAP] Drawing",
+        state.customSnapTargets.length,
+        "snap points",
+      );
+      state.customSnapTargets.forEach((snapPoint) => {
+        const canvasPos = toCanvas(snapPoint, origin, scale);
+
+        // Draw orange circle for each snap point
+        ctx.fillStyle = "rgba(255, 165, 0, 0.7)";
+        ctx.beginPath();
+        ctx.arc(canvasPos.x, canvasPos.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw border
+        ctx.strokeStyle = "rgba(255, 140, 0, 0.9)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
     }
 
     // Restore canvas context (end zoom/pan transformation)
@@ -926,6 +1263,21 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     });
   }
 
+  // Debug snap toggle
+  const debugSnapToggle = document.getElementById("debugSnapToggle");
+  if (debugSnapToggle) {
+    debugSnapToggle.addEventListener("click", () => {
+      const state = store.getState();
+      const newMode = !state.showDebugSnap;
+      store.setState({ showDebugSnap: newMode });
+
+      // Update button appearance
+      debugSnapToggle.classList.toggle("active", newMode);
+
+      drawField();
+    });
+  }
+
   // Mouse wheel zoom (desktop)
   canvas.addEventListener(
     "wheel",
@@ -1047,10 +1399,10 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const wrappedMouseDownHandler = (event) => {
     const state = store.getState();
 
-    // Handle custom measurement mode
+    // Handle custom measurement mode - start drag
     if (state.customMeasurementMode) {
       const canvasPos = getCanvasMousePosition(event, canvas);
-      const fieldPos = fromCanvasWithZoom(
+      let fieldPos = fromCanvasWithZoom(
         canvasPos,
         canvasDimensions.origin,
         canvasDimensions.scale,
@@ -1059,25 +1411,30 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         state.panY,
       );
 
-      // If we have a preview (first point already set), complete the measurement
-      if (state.customMeasurementPreview) {
-        const newMeasurement = {
-          id: Date.now(),
-          start: state.customMeasurementPreview,
-          end: fieldPos,
-        };
-
-        const measurements = [...state.customMeasurements, newMeasurement];
-        store.setState({
-          customMeasurements: measurements,
-          customMeasurementPreview: null,
-        });
-        drawField();
-      } else {
-        // Set first point
-        store.setState({ customMeasurementPreview: fieldPos });
-        drawField();
+      // Apply snapping to nearest point
+      console.log(
+        "[SNAP DEBUG] Mousedown - fieldPos:",
+        fieldPos,
+        "state.customSnapTargets:",
+        state.customSnapTargets?.length,
+      );
+      const snapPoint = findNearestSnapPoint(
+        fieldPos,
+        state.customSnapTargets,
+        1.5, // SNAP_THRESHOLD - increased for better usability
+      );
+      if (snapPoint) {
+        console.log("[SNAP DEBUG] Mousedown - Snapped to:", snapPoint);
+        fieldPos = snapPoint;
       }
+
+      // Always set the start point on mouse down
+      store.setState({
+        customMeasurementPreview: fieldPos,
+        customMeasurementDragging: true,
+      });
+      canvas.dataset.previewEnd = JSON.stringify(fieldPos);
+      drawField();
       return; // Don't execute normal mouse down logic
     }
 
@@ -1092,7 +1449,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     // Update custom measurement preview
     if (state.customMeasurementMode && state.customMeasurementPreview) {
       const canvasPos = getCanvasMousePosition(event, canvas);
-      const fieldPos = fromCanvasWithZoom(
+      let fieldPos = fromCanvasWithZoom(
         canvasPos,
         canvasDimensions.origin,
         canvasDimensions.scale,
@@ -1100,6 +1457,16 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         state.panX,
         state.panY,
       );
+
+      // Apply snapping to nearest point
+      const snapPoint = findNearestSnapPoint(
+        fieldPos,
+        state.customSnapTargets,
+        1.5, // SNAP_THRESHOLD - increased for better usability
+      );
+      if (snapPoint) {
+        fieldPos = snapPoint;
+      }
 
       // Update cursor position for preview (we'll draw this in drawField)
       canvas.dataset.previewEnd = JSON.stringify(fieldPos);
@@ -1112,6 +1479,65 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
   const originalMouseUpHandler = mouseUpHandler;
   const wrappedMouseUpHandler = (event) => {
+    const state = store.getState();
+
+    // Handle custom measurement mode - finish drag
+    if (
+      state.customMeasurementMode &&
+      state.customMeasurementPreview &&
+      state.customMeasurementDragging
+    ) {
+      const canvasPos = getCanvasMousePosition(event, canvas);
+      let fieldPos = fromCanvasWithZoom(
+        canvasPos,
+        canvasDimensions.origin,
+        canvasDimensions.scale,
+        state.zoomLevel,
+        state.panX,
+        state.panY,
+      );
+
+      // Apply snapping to nearest point
+      const snapPoint = findNearestSnapPoint(
+        fieldPos,
+        state.customSnapTargets,
+        1.5, // SNAP_THRESHOLD - increased for better usability
+      );
+      if (snapPoint) {
+        fieldPos = snapPoint;
+      }
+
+      // Only create measurement if dragged more than 1 meter (to avoid accidental clicks)
+      const dx = fieldPos.x - state.customMeasurementPreview.x;
+      const dy = fieldPos.y - state.customMeasurementPreview.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > 0.5) {
+        const newMeasurement = {
+          id: Date.now(),
+          start: state.customMeasurementPreview,
+          end: fieldPos,
+        };
+
+        const measurements = [...state.customMeasurements, newMeasurement];
+        store.setState({
+          customMeasurements: measurements,
+          customMeasurementPreview: null,
+          customMeasurementDragging: false,
+        });
+      } else {
+        // Too short, cancel
+        store.setState({
+          customMeasurementPreview: null,
+          customMeasurementDragging: false,
+        });
+      }
+
+      delete canvas.dataset.previewEnd;
+      drawField();
+      return;
+    }
+
     handlePanEnd();
     originalMouseUpHandler(event);
   };
@@ -1179,8 +1605,8 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         0.5,
       );
 
-      if (handleUnder) {
-        e.preventDefault(); // Prevent scrolling when touching handle
+      if (handleUnder || state.customMeasurementMode) {
+        e.preventDefault(); // Prevent scrolling when touching handle or in custom measurement mode
         isDragging = true;
       }
 

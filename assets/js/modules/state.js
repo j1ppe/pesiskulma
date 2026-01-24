@@ -135,8 +135,8 @@ export const SNAP_THRESHOLD = 0.4; // meters
  */
 export const createInitialState = () => ({
   fieldProfile: fieldProfileWomen,
-  showMeasurementsOnField: false,
-  editMode: false,
+  showMeasurementsOnField: true,
+  editMode: true,
   draggingHandle: null,
   editablePoints: {
     homePathStart: null,

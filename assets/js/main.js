@@ -13,6 +13,8 @@ import {
   createMouseDownHandler,
   createMouseMoveHandler,
   createMouseUpHandler,
+  getCanvasMousePosition,
+  getHandleUnderMouse,
 } from "./modules/interactions.js";
 import {
   calculateCanvasDimensions,
@@ -20,6 +22,7 @@ import {
   drawEditHandles,
   drawLine,
   drawSnapIndicator,
+  fromCanvas,
   toCanvas,
 } from "./modules/rendering.js";
 import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
@@ -28,8 +31,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   // DOM elements
   const canvas = document.getElementById("fullFieldCanvas");
   const fieldButtons = document.querySelectorAll("[data-fullfield]");
-  const measurementToggle = document.getElementById("measurementToggle");
-  const editModeToggle = document.getElementById("editModeToggle");
+  const resetEdits = document.getElementById("resetEdits");
   const tooltip = document.getElementById("measurementTooltip");
   const dimensionTargets = {
     first: document.querySelector("[data-dimension='first']"),
@@ -53,6 +55,79 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   };
 
   /**
+   * Custom confirm dialog
+   * @param {string} message - Message to display
+   * @param {string} title - Dialog title (optional)
+   * @returns {Promise<boolean>} True if OK clicked, false if cancelled
+   */
+  const customConfirm = (message, title = "Vahvistus") => {
+    return new Promise((resolve) => {
+      const modal = document.getElementById("confirmModal");
+      const titleEl = document.getElementById("confirmTitle");
+      const messageEl = document.getElementById("confirmMessage");
+      const okBtn = document.getElementById("confirmOk");
+      const cancelBtn = document.getElementById("confirmCancel");
+
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      modal.classList.add("active");
+
+      const cleanup = () => {
+        modal.classList.remove("active");
+        okBtn.removeEventListener("click", handleOk);
+        cancelBtn.removeEventListener("click", handleCancel);
+      };
+
+      const handleOk = () => {
+        cleanup();
+        resolve(true);
+      };
+
+      const handleCancel = () => {
+        cleanup();
+        resolve(false);
+      };
+
+      okBtn.addEventListener("click", handleOk);
+      cancelBtn.addEventListener("click", handleCancel);
+    });
+  };
+
+  /**
+   * Custom alert dialog
+   * @param {string} message - Message to display
+   * @param {string} title - Dialog title (optional)
+   * @returns {Promise<void>}
+   */
+  const customAlert = (message, title = "Ilmoitus") => {
+    return new Promise((resolve) => {
+      const modal = document.getElementById("confirmModal");
+      const titleEl = document.getElementById("confirmTitle");
+      const messageEl = document.getElementById("confirmMessage");
+      const okBtn = document.getElementById("confirmOk");
+      const cancelBtn = document.getElementById("confirmCancel");
+
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      cancelBtn.style.display = "none"; // Hide cancel button for alerts
+      modal.classList.add("active");
+
+      const cleanup = () => {
+        modal.classList.remove("active");
+        cancelBtn.style.display = ""; // Restore cancel button
+        okBtn.removeEventListener("click", handleOk);
+      };
+
+      const handleOk = () => {
+        cleanup();
+        resolve();
+      };
+
+      okBtn.addEventListener("click", handleOk);
+    });
+  };
+
+  /**
    * Update dimension displays
    */
   const updateDimensions = (values) => {
@@ -68,10 +143,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
    */
   const drawField = () => {
     const state = store.getState();
-    console.log("drawField state:", state);
-    console.log("fieldProfile:", state.fieldProfile);
     if (!state.fieldProfile) {
-      console.error("fieldProfile is undefined!");
       return;
     }
     const geometry = calculateGeometry(
@@ -525,6 +597,11 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     canvas.height = canvasDimensions.height;
 
     drawField();
+
+    // Update reset button position after canvas resize
+    if (resetEdits) {
+      updateResetButtonPosition();
+    }
   };
 
   // Event listeners
@@ -546,45 +623,97 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     });
   });
 
-  // Measurement toggle
-  if (measurementToggle) {
-    measurementToggle.addEventListener("click", () => {
-      store.toggleMeasurements();
-      const state = store.getState();
-      measurementToggle.textContent = state.showMeasurementsOnField
-        ? "Piilota mitat kentältä"
-        : "Näytä mitat kentällä";
-      drawField();
-    });
-  }
-
-  // Edit mode toggle
-  if (editModeToggle) {
-    editModeToggle.addEventListener("click", () => {
-      store.toggleEditMode();
-      const state = store.getState();
-
-      // Automatically enable measurements when entering edit mode
-      if (state.editMode && !state.showMeasurementsOnField) {
-        store.toggleMeasurements();
-      }
-
-      editModeToggle.textContent = state.editMode
-        ? "Sulje muokkaustila"
-        : "Muokkaa mittauksia";
-
-      editModeToggle.classList.toggle("active", state.editMode);
-      drawField();
-    });
-
-    // Double-click to reset
-    editModeToggle.addEventListener("dblclick", () => {
-      if (confirm("Palautetaanko mittaukset alkuperäisiin arvoihin?")) {
+  // Reset edits button
+  if (resetEdits) {
+    resetEdits.addEventListener("click", async () => {
+      const confirmed = await customConfirm(
+        "Palautetaanko mittaukset alkuperäisiin arvoihin?",
+      );
+      if (confirmed) {
         store.resetEditablePoints();
         drawField();
       }
     });
   }
+
+  // Update reset button visibility based on editablePoints
+  const updateResetButtonVisibility = () => {
+    if (!resetEdits) return;
+    const state = store.getState();
+
+    // If points are null, no edits yet
+    if (
+      state.editablePoints.homePathStart === null ||
+      state.editablePoints.homePathMid === null ||
+      state.editablePoints.homePathEnd === null
+    ) {
+      resetEdits.style.display = "none";
+      return;
+    }
+
+    // Calculate original geometry (without edits)
+    const originalGeometry = calculateGeometry(
+      state.fieldProfile,
+      { homePathStart: null, homePathMid: null, homePathEnd: null },
+      canvasDimensions.scale,
+    );
+
+    // Check if any point has been moved from original position
+    const hasEdits =
+      Math.abs(
+        state.editablePoints.homePathStart.x -
+          originalGeometry.initializedEditablePoints.homePathStart.x,
+      ) > 0.001 ||
+      Math.abs(
+        state.editablePoints.homePathStart.y -
+          originalGeometry.initializedEditablePoints.homePathStart.y,
+      ) > 0.001 ||
+      Math.abs(
+        state.editablePoints.homePathMid.x -
+          originalGeometry.initializedEditablePoints.homePathMid.x,
+      ) > 0.001 ||
+      Math.abs(
+        state.editablePoints.homePathMid.y -
+          originalGeometry.initializedEditablePoints.homePathMid.y,
+      ) > 0.001 ||
+      Math.abs(
+        state.editablePoints.homePathEnd.x -
+          originalGeometry.initializedEditablePoints.homePathEnd.x,
+      ) > 0.001 ||
+      Math.abs(
+        state.editablePoints.homePathEnd.y -
+          originalGeometry.initializedEditablePoints.homePathEnd.y,
+      ) > 0.001;
+
+    resetEdits.style.display = hasEdits ? "block" : "none";
+  };
+
+  // Update reset button position to be on top of the canvas (top-left corner of background)
+  const updateResetButtonPosition = () => {
+    if (!resetEdits) return;
+
+    // Get canvas and wrapper positions
+    const canvasRect = canvas.getBoundingClientRect();
+    const wrapper = canvas.parentElement;
+    const wrapperRect = wrapper.getBoundingClientRect();
+
+    // Place at canvas top-left with small margin (this is where the background starts)
+    const left = canvasRect.left - wrapperRect.left + 10;
+    const top = canvasRect.top - wrapperRect.top + 10;
+
+    resetEdits.style.left = `${left}px`;
+    resetEdits.style.top = `${top}px`;
+  };
+
+  // Subscribe to state changes to update reset button
+  store.subscribe(() => {
+    updateResetButtonVisibility();
+    updateResetButtonPosition();
+  });
+
+  // Initial update
+  updateResetButtonVisibility();
+  updateResetButtonPosition();
 
   // Canvas interactions
   const hoverHandler = createHoverHandler({
@@ -634,6 +763,111 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   canvas.addEventListener("mousemove", mouseMoveHandler);
   canvas.addEventListener("mouseup", mouseUpHandler);
   canvas.addEventListener("mouseleave", mouseUpHandler);
+
+  // Modal elements
+  const modal = document.getElementById("offsetModal");
+  const offsetInput = document.getElementById("offsetInput");
+  const offsetOk = document.getElementById("offsetOk");
+  const offsetCancel = document.getElementById("offsetCancel");
+
+  // Click handler for editable handles
+  canvas.addEventListener("click", (e) => {
+    const state = store.getState();
+    if (!state.editMode) return;
+
+    const origin = canvasDimensions.origin;
+    const scale = canvasDimensions.scale;
+    const canvasPos = getCanvasMousePosition(e, canvas);
+    const fieldPos = fromCanvas(canvasPos, origin, scale);
+
+    // Check if clicked on homePathStart handle
+    const handleUnder = getHandleUnderMouse(
+      fieldPos,
+      state.editablePoints,
+      0.5,
+    );
+
+    if (handleUnder === "homePathStart") {
+      // Calculate geometry to get current positions
+      const geometry = calculateGeometry(
+        state.fieldProfile,
+        state.editablePoints,
+        scale,
+      );
+
+      // Get current offset distance along third base line
+      const currentOffset = distanceBetween(
+        geometry.originalHomePathFirstLine.start,
+        geometry.homePathFirstLine.start,
+      );
+
+      // Show modal
+      offsetInput.value = currentOffset.toFixed(2);
+      modal.classList.add("active");
+      offsetInput.focus();
+      offsetInput.select();
+
+      // Cleanup function to remove all listeners
+      const cleanup = () => {
+        modal.classList.remove("active");
+        offsetOk.removeEventListener("click", handleOk);
+        offsetCancel.removeEventListener("click", handleCancel);
+        offsetInput.removeEventListener("keydown", handleKeyDown);
+      };
+
+      // Handle OK button
+      const handleOk = () => {
+        const newOffset = parseFloat(offsetInput.value);
+
+        if (!isNaN(newOffset) && newOffset >= 0 && newOffset <= 20) {
+          // Calculate direction along third base line (from start to end)
+          const thirdBaseLine = geometry.thirdBaseLine;
+          const dx = thirdBaseLine.end.x - thirdBaseLine.start.x;
+          const dy = thirdBaseLine.end.y - thirdBaseLine.start.y;
+          const lineLength = Math.sqrt(dx * dx + dy * dy);
+
+          // Normalize direction
+          const dirX = lineLength > 0 ? dx / lineLength : 0;
+          const dirY = lineLength > 0 ? dy / lineLength : 0;
+
+          // Calculate new position from third base center
+          const newPoint = {
+            x: thirdBaseLine.start.x + dirX * newOffset,
+            y: thirdBaseLine.start.y + dirY * newOffset,
+          };
+
+          // Close modal FIRST (before updating canvas)
+          cleanup();
+
+          // Wait for browser repaint, then update canvas
+          requestAnimationFrame(() => {
+            store.updateEditablePoint("homePathStart", newPoint);
+            drawField();
+          });
+        } else {
+          customAlert("Virheellinen arvo. Syötä luku väliltä 0-20.", "Virhe");
+        }
+      };
+
+      // Handle Cancel button
+      const handleCancel = () => {
+        cleanup();
+      };
+
+      // Handle Enter/Escape key
+      const handleKeyDown = (event) => {
+        if (event.key === "Enter") {
+          handleOk();
+        } else if (event.key === "Escape") {
+          handleCancel();
+        }
+      };
+
+      offsetOk.addEventListener("click", handleOk);
+      offsetCancel.addEventListener("click", handleCancel);
+      offsetInput.addEventListener("keydown", handleKeyDown);
+    }
+  });
 
   // Initial render - reset editable points to ensure clean state
   store.setState({

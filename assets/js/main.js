@@ -1152,11 +1152,12 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     const zoomControls = document.getElementById("zoomControls");
     if (!zoomControls) return;
 
-    // On mobile, use CSS positioning (more reliable)
+    // On mobile, use JavaScript to position dynamically
+    // On desktop, CSS handles positioning (top: 20px, right: 20px)
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    if (isMobile) return;
+    if (!isMobile) return; // Desktop uses CSS
 
-    // Get canvas and wrapper positions
+    // Mobile: Get canvas and wrapper positions
     const canvasRect = canvas.getBoundingClientRect();
     const wrapper = canvas.parentElement;
     const wrapperRect = wrapper.getBoundingClientRect();

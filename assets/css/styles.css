@@ -833,7 +833,8 @@ canvas:hover {
 /* Zoom controls */
 .zoom-controls {
   position: absolute;
-  /* top and right set dynamically by JavaScript */
+  top: 20px;
+  right: 10px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1028,7 +1029,8 @@ canvas:hover {
 /* Custom measurement toggle */
 .custom-measure-toggle {
   position: absolute;
-  /* bottom and left set dynamically by JavaScript */
+  bottom: 20px;
+  left: 20px;
   display: inline-flex;
   align-items: center;
   gap: 8px;

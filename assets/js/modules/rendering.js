@@ -335,9 +335,18 @@ export const calculateCanvasDimensions = (
   legendHeight,
   footerHeight,
 ) => {
-  const fieldWidth = 60;
+  // Fixed canvas dimensions for consistency across field types
+  const CANVAS_WIDTH = 550;
+  const CANVAS_HEIGHT = 1000;
+
+  // Calculate field dimensions from profile
+  // Women's field is narrower than men's field
+  const fieldWidth = fieldProfile.backBoundary.width + 18; // back width + extra for sides
   const topMargin = 1.5;
   const bottomMargin = 8;
+
+  // Calculate actual field height for this specific field profile
+  // This allows women's field to scale larger and use canvas space better
   const fieldHeight =
     fieldProfile.homePlate.centerToHomeLine +
     fieldProfile.backBoundary.distanceFromHomeLine +
@@ -346,51 +355,24 @@ export const calculateCanvasDimensions = (
 
   const isMobile = viewportWidth <= 768;
 
-  // Mobile: minimize chrome to maximize field size
-  const chromeSpacing = isMobile ? 4 : 32;
-  const effectiveLegendHeight = isMobile ? 0 : legendHeight;
-  const effectiveFooterHeight = isMobile ? 0 : footerHeight;
-
-  const availableHeight =
-    viewportHeight -
-    (selectorHeight +
-      effectiveLegendHeight +
-      effectiveFooterHeight +
-      chromeSpacing);
-
-  const horizontalGutter = isMobile ? 4 : 12;
-  const maxCanvasWidth = Math.max(viewportWidth - horizontalGutter * 2, 220);
-
   // Smaller padding on mobile for maximum field size
-  const paddingX = isMobile
-    ? 2
-    : Math.max(4, Math.min(10, viewportWidth * 0.008));
-  const paddingY = isMobile
-    ? 2
-    : Math.max(2, Math.min(8, viewportHeight * 0.008));
+  const paddingX = isMobile ? 2 : 8;
+  const paddingY = isMobile ? 2 : 8;
 
-  const widthScale = (maxCanvasWidth - paddingX * 2) / fieldWidth;
-  const heightScaleRaw = (availableHeight - paddingY * 2) / fieldHeight;
-  const heightScale =
-    Number.isFinite(heightScaleRaw) && heightScaleRaw > 0
-      ? heightScaleRaw
-      : widthScale;
-
-  const scale = Math.max(0.1, Math.min(widthScale, heightScale));
-
-  const canvasWidth = fieldWidth * scale + paddingX * 2;
-  const canvasHeight = fieldHeight * scale + paddingY * 2;
-
-  const width = Math.max(200, Math.min(canvasWidth, maxCanvasWidth));
-  const height =
-    canvasHeight > 0 && Number.isFinite(canvasHeight)
-      ? canvasHeight
-      : fieldHeight * scale + paddingY * 2;
+  const scale = Math.min(
+    (CANVAS_WIDTH - paddingX * 2) / fieldWidth,
+    (CANVAS_HEIGHT - paddingY * 2) / fieldHeight,
+  );
 
   const origin = {
-    x: width / 2,
-    y: height - paddingY - bottomMargin * scale,
+    x: CANVAS_WIDTH / 2,
+    y: CANVAS_HEIGHT - paddingY - bottomMargin * scale,
   };
 
-  return { width, height, scale, origin };
+  return {
+    width: CANVAS_WIDTH,
+    height: CANVAS_HEIGHT,
+    scale,
+    origin,
+  };
 };

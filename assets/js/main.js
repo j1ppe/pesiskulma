@@ -774,14 +774,141 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   canvas.addEventListener("mouseup", mouseUpHandler);
   canvas.addEventListener("mouseleave", mouseUpHandler);
 
+  // Touch event support for mobile
+  let isDragging = false;
+  let touchStartPos = null;
+
+  canvas.addEventListener(
+    "touchstart",
+    (e) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+
+      touchStartPos = { x: touch.clientX, y: touch.clientY };
+
+      // Create synthetic mouse event
+      const mouseEvent = new MouseEvent("mousedown", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      });
+
+      // Check if touching a handle
+      const state = store.getState();
+      const origin = canvasDimensions.origin;
+      const scale = canvasDimensions.scale;
+      const canvasPos = getCanvasMousePosition(mouseEvent, canvas);
+      const fieldPos = fromCanvas(canvasPos, origin, scale);
+      const handleUnder = getHandleUnderMouse(
+        fieldPos,
+        state.editablePoints,
+        0.5,
+      );
+
+      if (handleUnder) {
+        e.preventDefault(); // Prevent scrolling when touching handle
+        isDragging = true;
+      }
+
+      mouseDownHandler(mouseEvent);
+      hoverHandler(mouseEvent);
+    },
+    { passive: false },
+  );
+
+  canvas.addEventListener(
+    "touchmove",
+    (e) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+
+      // Check if moved significantly (> 5px)
+      if (touchStartPos) {
+        const dx = touch.clientX - touchStartPos.x;
+        const dy = touch.clientY - touchStartPos.y;
+        if (Math.sqrt(dx * dx + dy * dy) > 5) {
+          isDragging = true;
+        }
+      }
+
+      // Only prevent default if actually dragging
+      if (isDragging) {
+        e.preventDefault();
+      }
+
+      const mouseEvent = new MouseEvent("mousemove", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      });
+
+      mouseMoveHandler(mouseEvent);
+      hoverHandler(mouseEvent);
+    },
+    { passive: false },
+  );
+
+  canvas.addEventListener(
+    "touchend",
+    (e) => {
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+
+      const wasJustTap = !isDragging;
+
+      const mouseEvent = new MouseEvent("mouseup", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      });
+
+      mouseUpHandler(mouseEvent);
+
+      // Show tooltip on tap (not drag)
+      if (wasJustTap) {
+        hoverHandler(mouseEvent);
+      }
+
+      isDragging = false;
+      touchStartPos = null;
+    },
+    { passive: false },
+  );
+
+  canvas.addEventListener(
+    "touchcancel",
+    (e) => {
+      const touch = e.changedTouches[0];
+      if (touch) {
+        const mouseEvent = new MouseEvent("mouseup", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX: touch.clientX,
+          clientY: touch.clientY,
+        });
+        mouseUpHandler(mouseEvent);
+      }
+      isDragging = false;
+      touchStartPos = null;
+    },
+    { passive: false },
+  );
+
   // Modal elements
   const modal = document.getElementById("offsetModal");
   const offsetInput = document.getElementById("offsetInput");
   const offsetOk = document.getElementById("offsetOk");
   const offsetCancel = document.getElementById("offsetCancel");
 
-  // Click handler for editable handles
-  canvas.addEventListener("click", (e) => {
+  // Click/tap handler for editable handles
+  const handleCanvasTap = (e) => {
     const state = store.getState();
     if (!state.editMode) return;
 
@@ -877,6 +1004,31 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       offsetCancel.addEventListener("click", handleCancel);
       offsetInput.addEventListener("keydown", handleKeyDown);
     }
+  };
+
+  canvas.addEventListener("click", handleCanvasTap);
+
+  // Add touch support for handle tapping on mobile
+  let lastTouchEnd = 0;
+  canvas.addEventListener("touchend", (e) => {
+    const now = Date.now();
+    // Prevent double-firing with click event
+    if (now - lastTouchEnd < 300) return;
+    lastTouchEnd = now;
+
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+
+    // Create synthetic mouse event
+    const mouseEvent = new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+    });
+
+    handleCanvasTap(mouseEvent);
   });
 
   // Initial render - reset editable points to ensure clean state

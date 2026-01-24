@@ -69,9 +69,18 @@ export const findNearestSnap = (
  */
 export const getCanvasMousePosition = (event, canvas) => {
   const rect = canvas.getBoundingClientRect();
+
+  // Calculate position in CSS pixels
+  const cssX = event.clientX - rect.left;
+  const cssY = event.clientY - rect.top;
+
+  // Scale to canvas internal coordinates (CSS size might differ from canvas size)
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
   return {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top,
+    x: cssX * scaleX,
+    y: cssY * scaleY,
   };
 };
 
@@ -208,8 +217,42 @@ export const createHoverHandler = ({
         <div class="tooltip-description">${hoveredArea.tooltipData.description}</div>
       `;
       tooltip.style.display = "block";
-      tooltip.style.left = event.clientX + 15 + "px";
-      tooltip.style.top = event.clientY + 15 + "px";
+
+      // Position tooltip, ensuring it stays on screen
+      let tooltipX = event.clientX + 15;
+      let tooltipY = event.clientY + 15;
+
+      // Wait for next frame to get accurate tooltip dimensions
+      requestAnimationFrame(() => {
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        // Check if tooltip goes off right edge
+        if (tooltipX + tooltipRect.width > viewportWidth - 10) {
+          // Position to the left of cursor instead
+          tooltipX = event.clientX - tooltipRect.width - 15;
+        }
+
+        // Check if tooltip goes off bottom edge
+        if (tooltipY + tooltipRect.height > viewportHeight - 10) {
+          tooltipY = event.clientY - tooltipRect.height - 15;
+        }
+
+        // Ensure tooltip doesn't go off left edge
+        if (tooltipX < 10) {
+          tooltipX = 10;
+        }
+
+        // Ensure tooltip doesn't go off top edge
+        if (tooltipY < 10) {
+          tooltipY = 10;
+        }
+
+        tooltip.style.left = `${tooltipX}px`;
+        tooltip.style.top = `${tooltipY}px`;
+      });
+
       canvas.style.cursor = "pointer";
     } else {
       tooltip.style.display = "none";

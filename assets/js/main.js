@@ -924,7 +924,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         // Text dimensions for hit area
         ctx.save();
         ctx.font = "bold 16px sans-serif";
-        const text = `${distance.toFixed(2)} m`;
+        const text = formatMeters(distance);
         const textWidth = ctx.measureText(text).width;
         const textHeight = 20; // Approximate text height
         ctx.restore();

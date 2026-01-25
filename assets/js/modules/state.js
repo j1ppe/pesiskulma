@@ -160,6 +160,7 @@ export const createInitialState = () => ({
   panX: 0,
   panY: 0,
   isPanning: false,
+  panMode: false, // Toggle for enabling pan functionality
 });
 
 /**

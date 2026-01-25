@@ -846,7 +846,7 @@ canvas {
   border: 2.5px solid rgba(120, 180, 255, 0.7);
   border-radius: 28px;
   padding: 6px 16px;
-  z-index: 100;
+  z-index: 110;
   box-shadow:
     0 3px 15px rgba(30, 100, 200, 0.4),
     inset 0 1px 2px rgba(255, 255, 255, 0.1);
@@ -1026,6 +1026,21 @@ canvas {
     width: 16px;
     height: 16px;
   }
+
+  .pan-mode-toggle {
+    /* Mobile positioning */
+    bottom: 4px !important;
+    left: 4px !important;
+    top: auto !important;
+    right: auto !important;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .pan-mode-toggle svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 /* Custom measurement toggle */
@@ -1111,6 +1126,87 @@ canvas {
   }
 }
 
+/* Pan mode toggle */
+.pan-mode-toggle {
+  position: absolute;
+  /* Position set by JS - see updateZoomControlsPosition() */
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  min-width: fit-content;
+  background: linear-gradient(
+    135deg,
+    rgba(40, 90, 150, 0.45),
+    rgba(20, 60, 120, 0.5)
+  );
+  border: 2.5px solid rgba(120, 180, 255, 0.7);
+  border-radius: 28px;
+  color: rgba(255, 255, 255, 0.98);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    all var(--transition-base),
+    transform var(--transition-fast);
+  box-shadow:
+    0 3px 15px rgba(30, 100, 200, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  z-index: 110;
+  white-space: nowrap;
+}
+
+.pan-mode-toggle svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+@media (hover: hover) {
+  .pan-mode-toggle:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(60, 120, 190, 0.6),
+      rgba(35, 85, 150, 0.65)
+    );
+    border-color: rgba(150, 200, 255, 1);
+    transform: translateY(-2px);
+    box-shadow:
+      0 4px 20px rgba(50, 120, 220, 0.5),
+      0 0 25px rgba(100, 180, 255, 0.3),
+      inset 0 1px 2px rgba(255, 255, 255, 0.15);
+  }
+}
+
+.pan-mode-toggle:active {
+  transform: scale(0.98) translateY(0);
+}
+
+.pan-mode-toggle.active {
+  background: linear-gradient(
+    135deg,
+    rgba(76, 217, 100, 0.5),
+    rgba(40, 180, 60, 0.55)
+  );
+  border-color: rgba(150, 255, 170, 1);
+  box-shadow:
+    0 3px 15px rgba(76, 217, 100, 0.5),
+    0 0 30px rgba(76, 217, 100, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.15);
+}
+
+@media (hover: hover) {
+  .pan-mode-toggle.active:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(76, 217, 100, 0.6),
+      rgba(40, 180, 60, 0.65)
+    );
+    border-color: rgba(150, 255, 170, 1);
+  }
+}
+
 /* Debug snap toggle */
 .debug-snap-toggle {
   display: none; /* Hidden */
@@ -1150,8 +1246,21 @@ canvas {
   position: relative;
 }
 
+/* Canvas wrapper for PesisKulma page */
+.canvas-wrapper {
+  max-width: 1100px;
+  margin: 0 auto 30px;
+  padding: 0 16px;
+  position: relative;
+}
+
 @media (max-width: 768px) {
   .fullfield-canvas-wrap {
+    margin: 0 auto 10px;
+    padding: 0 4px;
+  }
+
+  .canvas-wrapper {
     margin: 0 auto 10px;
     padding: 0 4px;
   }
@@ -1492,14 +1601,19 @@ footer p {
 .pitch-plate-control {
   position: fixed;
   width: 240px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(16, 75, 43, 0.3);
+  background: rgba(7, 10, 27, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  backdrop-filter: blur(10px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 40px rgba(76, 175, 80, 0.15);
+  z-index: 120;
+  backdrop-filter: blur(18px);
   user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .pitch-plate-header {
@@ -1513,25 +1627,45 @@ footer p {
 
 .pitch-plate-header h3 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.98);
   pointer-events: none;
+  letter-spacing: 0.02em;
 }
 
 .pitch-plate-reset {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 6px 10px;
+  padding: 8px;
   font-size: 12px;
   font-weight: 500;
   color: #fff;
   background: linear-gradient(135deg, #4caf50, #45a049);
   border: none;
-  border-radius: 6px;
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.pitch-plate-reset svg {
+  flex-shrink: 0;
+}
+
+/* Hide text in desktop version */
+.pitch-plate-control .pitch-plate-reset {
+  font-size: 0;
+  gap: 0;
+}
+
+.pitch-plate-control .pitch-plate-reset svg {
+  width: 18px;
+  height: 18px;
 }
 
 .pitch-plate-reset:hover {
@@ -1568,10 +1702,12 @@ footer p {
 
 .pitch-plate-hint {
   margin: 8px 0 0 0;
-  font-size: 11px;
-  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
 }
 
 /* Mobile: Floating button */
@@ -1580,11 +1716,11 @@ footer p {
   position: fixed;
   bottom: 80px;
   right: 16px;
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   background: linear-gradient(135deg, #4caf50, #45a049);
   border: none;
-  border-radius: 50%;
+  border-radius: 28px;
   color: #fff;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -1623,13 +1759,20 @@ footer p {
 }
 
 .pitch-plate-modal-content {
-  background: #fff;
+  background: rgba(7, 10, 27, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 12px;
   padding: 20px;
   max-width: 90%;
   width: 340px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(76, 175, 80, 0.2);
+  backdrop-filter: blur(18px);
   animation: slideUp 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .pitch-plate-modal-header {
@@ -1641,15 +1784,16 @@ footer p {
 
 .pitch-plate-modal-header h3 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.98);
+  letter-spacing: 0.02em;
 }
 
 .pitch-plate-modal-close {
   background: none;
   border: none;
-  color: #999;
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -1659,7 +1803,7 @@ footer p {
 }
 
 .pitch-plate-modal-close:hover {
-  color: #333;
+  color: rgba(255, 255, 255, 0.95);
 }
 
 #pitchPlateCanvasMobile {
@@ -1691,6 +1835,7 @@ footer p {
   padding: 12px;
   font-size: 14px;
   margin-top: 8px;
+  border-radius: 8px;
 }
 
 /* Responsive */
@@ -1703,15 +1848,18 @@ footer p {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: absolute !important;
+    bottom: 4px !important;
+    right: 4px !important;
+    top: auto !important;
+    left: auto !important;
   }
 }
 
 @media (max-width: 768px) {
   .pitch-plate-toggle {
-    bottom: 70px;
-    right: 12px;
-    width: 52px;
-    height: 52px;
+    width: 40px;
+    height: 40px;
   }
 
   .pitch-plate-modal-content {

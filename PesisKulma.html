@@ -46,7 +46,77 @@
       </div>
     </section>
 
-    <canvas id="fieldCanvas"></canvas>
+    <div class="canvas-wrapper">
+      <canvas id="fieldCanvas"></canvas>
+
+      <!-- Zoom controls -->
+      <div class="zoom-controls" id="zoomControls">
+        <button
+          class="zoom-btn zoom-out"
+          id="zoomOut"
+          title="Loitonna"
+          aria-label="Loitonna"
+        ></button>
+        <span class="zoom-level" id="zoomLevel">100%</span>
+        <button
+          class="zoom-btn zoom-reset"
+          id="zoomReset"
+          title="Palauta näkymä"
+          aria-label="Palauta näkymä"
+        ></button>
+        <button
+          class="zoom-btn zoom-in"
+          id="zoomIn"
+          title="Lähennä"
+          aria-label="Lähennä"
+        ></button>
+      </div>
+
+      <!-- Pan mode toggle -->
+      <button
+        class="pan-mode-toggle"
+        id="panModeToggle"
+        title="Pan-tila"
+        aria-label="Aktivoi pan-tila kentän siirtämiseen"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
+          <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
+          <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
+          <path
+            d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"
+          ></path>
+        </svg>
+        <span>Pan</span>
+      </button>
+
+      <!-- Mobile: Floating Button -->
+      <button
+        class="pitch-plate-toggle"
+        id="pitchPlateToggle"
+        title="Avaa syöttölautasen asetukset"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="8" />
+          <circle cx="12" cy="12" r="2" fill="currentColor" />
+        </svg>
+      </button>
+    </div>
 
     <!-- Pitch Plate Control (Desktop) -->
     <div class="pitch-plate-control" id="pitchPlateControl">
@@ -72,28 +142,9 @@
       </div>
       <canvas id="pitchPlateCanvas" width="200" height="200"></canvas>
       <p class="pitch-plate-hint">
-        Siirrä palluraa asettaaksesi lyönnin lähtöpiste
+        Siirrä palloa asettaaksesi lyönnin lähtöpiste
       </p>
     </div>
-
-    <!-- Mobile: Floating Button -->
-    <button
-      class="pitch-plate-toggle"
-      id="pitchPlateToggle"
-      title="Avaa syöttölautasen asetukset"
-    >
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <circle cx="12" cy="12" r="8" />
-        <circle cx="12" cy="12" r="2" fill="currentColor" />
-      </svg>
-    </button>
 
     <!-- Mobile: Modal Overlay -->
     <div class="pitch-plate-modal" id="pitchPlateModal">
@@ -115,7 +166,7 @@
         </div>
         <canvas id="pitchPlateCanvasMobile" width="280" height="280"></canvas>
         <p class="pitch-plate-hint">
-          Siirrä palluraa asettaaksesi lyönnin lähtöpiste
+          Siirrä palloa asettaaksesi lyönnin lähtöpiste
         </p>
         <button class="pitch-plate-reset" id="pitchPlateResetMobile">
           <svg

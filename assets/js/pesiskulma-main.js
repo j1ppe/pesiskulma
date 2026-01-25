@@ -27,6 +27,13 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     "pitchPlateResetMobile",
   );
 
+  // Zoom controls
+  const zoomIn = document.getElementById("zoomIn");
+  const zoomOut = document.getElementById("zoomOut");
+  const zoomReset = document.getElementById("zoomReset");
+  const zoomLevelDisplay = document.getElementById("zoomLevel");
+  const panModeToggle = document.getElementById("panModeToggle");
+
   if (!canvas || !netDistanceInput) return;
 
   const ctx = canvas.getContext("2d");
@@ -73,6 +80,11 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
     const { origin, scale } = canvasDimensions;
 
+    // Apply zoom and pan transformation
+    ctx.save();
+    ctx.translate(state.panX, state.panY);
+    ctx.scale(state.zoomLevel, state.zoomLevel);
+
     // Helper to draw line
     const drawFieldLine = (
       lineSegment,
@@ -88,8 +100,6 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       ctx.lineTo(b.x, b.y);
       ctx.stroke();
     };
-
-    ctx.save();
 
     // Draw field boundary lines
     drawFieldLine({ start: geometry.homeLeft, end: geometry.homeRight });
@@ -443,6 +453,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       drawBall(ballPosition.x, ballPosition.y, origin, scale);
     }
 
+    // Restore canvas context (end zoom/pan transformation)
     ctx.restore();
   };
 
@@ -495,6 +506,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
     // Plate dimensions (in meters)
     const plateRadius = 0.3; // 30cm radius (60cm diameter)
+    const plateThickness = 0.05; // 5cm thickness
     const maxOffset = 0.35; // Allow 35cm offset from center
 
     // Scale: pixels per meter (zoom in on plate, show less field area)
@@ -502,17 +514,19 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     const pixelsPerMeter =
       Math.min(width, height) / (plateRadius * 2 + viewMargin * 2);
 
+    const plateRadiusPx = plateRadius * pixelsPerMeter;
+
     // Clear canvas
     context.clearRect(0, 0, width, height);
 
     // Draw plate (white circle with subtle gradient)
     const gradient = context.createRadialGradient(
-      centerX - plateRadius * pixelsPerMeter * 0.3,
-      centerY - plateRadius * pixelsPerMeter * 0.3,
+      centerX - plateRadiusPx * 0.3,
+      centerY - plateRadiusPx * 0.3,
       0,
       centerX,
       centerY,
-      plateRadius * pixelsPerMeter,
+      plateRadiusPx,
     );
     gradient.addColorStop(0, "#ffffff");
     gradient.addColorStop(0.7, "#f5f5f5");
@@ -520,25 +534,12 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
     context.fillStyle = gradient;
     context.beginPath();
-    context.arc(centerX, centerY, plateRadius * pixelsPerMeter, 0, Math.PI * 2);
+    context.arc(centerX, centerY, plateRadiusPx, 0, Math.PI * 2);
     context.fill();
 
     // Plate border
     context.strokeStyle = "#cccccc";
     context.lineWidth = 2;
-    context.stroke();
-
-    // Inner circle detail
-    context.strokeStyle = "#e0e0e0";
-    context.lineWidth = 1;
-    context.beginPath();
-    context.arc(
-      centerX,
-      centerY,
-      plateRadius * pixelsPerMeter * 0.8,
-      0,
-      Math.PI * 2,
-    );
     context.stroke();
 
     // Center cross
@@ -610,17 +611,32 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   };
 
   /**
-   * Position pitch plate control next to canvas
+   * Position pitch plate control below zoom controls on desktop
    */
   const positionPitchPlateControl = () => {
     if (!pitchPlateControl || window.innerWidth <= 1024) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const gap = 20; // Gap between canvas and control
+    const zoomControls = document.getElementById("zoomControls");
+    const panToggle = document.getElementById("panModeToggle");
+    if (!zoomControls) return;
 
-    // Position to the right of canvas, aligned with top
-    pitchPlateControl.style.left = rect.right + gap + "px";
-    pitchPlateControl.style.top = rect.top + "px";
+    const canvasRect = canvas.getBoundingClientRect();
+    const gap = 20;
+
+    // Calculate position: start from canvas top, add zoom height, pan height, and gaps
+    // Zoom controls height ~52px, pan toggle ~40px, gaps 25px (zoom-pan) + 20px (pan-pitch)
+    const zoomHeight = zoomControls.offsetHeight || 52;
+    const panHeight = panToggle ? panToggle.offsetHeight || 40 : 0;
+
+    const topPosition =
+      canvasRect.top +
+      gap +
+      zoomHeight +
+      (panToggle ? 25 + panHeight + 20 : 20);
+
+    // Position below zoom and pan controls, aligned to right side of canvas
+    pitchPlateControl.style.left = canvasRect.right + gap + "px";
+    pitchPlateControl.style.top = topPosition + "px";
     pitchPlateControl.style.right = "auto";
     pitchPlateControl.style.bottom = "auto";
   };
@@ -657,6 +673,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     canvas.height = canvasDimensions.height;
 
     drawField();
+    updateZoomControlsPosition();
     positionPitchPlateControl();
   };
 
@@ -684,7 +701,232 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     drawField();
   });
 
-  // Pitch plate interaction
+  // Zoom controls
+  const updateZoomDisplay = () => {
+    const state = store.getState();
+    if (zoomLevelDisplay) {
+      zoomLevelDisplay.textContent = `${Math.round(state.zoomLevel * 100)}%`;
+    }
+    if (zoomOut) {
+      zoomOut.disabled = state.zoomLevel <= 0.5;
+    }
+    if (zoomIn) {
+      zoomIn.disabled = state.zoomLevel >= 3.0;
+    }
+  };
+
+  const handleZoom = (delta, centerX = null, centerY = null) => {
+    const state = store.getState();
+    const oldZoom = state.zoomLevel;
+    const newZoom = Math.max(0.5, Math.min(3.0, oldZoom + delta));
+
+    if (newZoom === oldZoom) return;
+
+    // If center point provided, zoom to that point
+    if (centerX !== null && centerY !== null) {
+      // Adjust pan so the point under cursor stays in same place
+      const zoomRatio = newZoom / oldZoom;
+      const newPanX = centerX - (centerX - state.panX) * zoomRatio;
+      const newPanY = centerY - (centerY - state.panY) * zoomRatio;
+      store.setPan(newPanX, newPanY);
+    }
+
+    store.setZoom(newZoom);
+    updateZoomDisplay();
+    drawField();
+  };
+
+  // Zoom button click handlers
+  if (zoomIn) {
+    zoomIn.addEventListener("click", () => {
+      const centerX = canvas.clientWidth / 2;
+      const centerY = canvas.clientHeight / 2;
+      handleZoom(0.25, centerX, centerY);
+    });
+  }
+
+  if (zoomOut) {
+    zoomOut.addEventListener("click", () => {
+      const centerX = canvas.clientWidth / 2;
+      const centerY = canvas.clientHeight / 2;
+      handleZoom(-0.25, centerX, centerY);
+    });
+  }
+
+  if (zoomReset) {
+    zoomReset.addEventListener("click", () => {
+      store.setZoom(1.0);
+      store.setPan(0, 0);
+      updateZoomDisplay();
+      drawField();
+    });
+  }
+
+  // Pan mode toggle
+  if (panModeToggle) {
+    panModeToggle.addEventListener("click", () => {
+      const state = store.getState();
+      const newMode = !state.panMode;
+      store.setState({ panMode: newMode });
+
+      // Update button appearance
+      panModeToggle.classList.toggle("active", newMode);
+
+      // Update cursor style
+      canvas.style.cursor = newMode ? "grab" : "crosshair";
+    });
+  }
+
+  // Mouse wheel zoom
+  canvas.addEventListener(
+    "wheel",
+    (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const centerX = e.clientX - rect.left;
+      const centerY = e.clientY - rect.top;
+      const delta = e.deltaY < 0 ? 0.1 : -0.1;
+      handleZoom(delta, centerX, centerY);
+    },
+    { passive: false },
+  );
+
+  // Pan functionality
+  let isPanning = false;
+  let panStartX = 0;
+  let panStartY = 0;
+  let panStartOffsetX = 0;
+  let panStartOffsetY = 0;
+
+  const handlePanStart = (event) => {
+    const state = store.getState();
+
+    // Pan mode: left mouse button OR touch activates panning
+    // Without pan mode: only middle button or Ctrl/Meta + click
+    const isTouch = event.type.startsWith("touch");
+    const shouldPan = state.panMode
+      ? isTouch || event.button === 0
+      : !isTouch && (event.button === 1 || event.ctrlKey || event.metaKey);
+
+    if (shouldPan) {
+      event.preventDefault();
+      isPanning = true;
+
+      if (isTouch) {
+        const touch = event.touches[0];
+        panStartX = touch.clientX;
+        panStartY = touch.clientY;
+      } else {
+        panStartX = event.clientX;
+        panStartY = event.clientY;
+      }
+
+      panStartOffsetX = state.panX;
+      panStartOffsetY = state.panY;
+
+      // Update cursor during pan
+      if (state.panMode && !isTouch) {
+        canvas.style.cursor = "grabbing";
+      }
+    }
+  };
+
+  const handlePanMove = (event) => {
+    if (!isPanning) return;
+
+    // Only prevent default if the event is cancelable
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+
+    let clientX, clientY;
+    if (event.type.startsWith("touch")) {
+      const touch = event.touches[0];
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    } else {
+      clientX = event.clientX;
+      clientY = event.clientY;
+    }
+
+    const dx = clientX - panStartX;
+    const dy = clientY - panStartY;
+
+    store.setPan(panStartOffsetX + dx, panStartOffsetY + dy);
+    drawField();
+  };
+
+  const handlePanEnd = () => {
+    const state = store.getState();
+    isPanning = false;
+
+    // Restore cursor
+    if (state.panMode) {
+      canvas.style.cursor = "grab";
+    }
+  };
+
+  canvas.addEventListener("mousedown", handlePanStart);
+  canvas.addEventListener("mousemove", handlePanMove);
+  canvas.addEventListener("mouseup", handlePanEnd);
+  canvas.addEventListener("mouseleave", handlePanEnd);
+
+  // Touch events for mobile panning
+  canvas.addEventListener("touchstart", handlePanStart, { passive: false });
+  canvas.addEventListener("touchmove", handlePanMove, { passive: false });
+  canvas.addEventListener("touchend", handlePanEnd);
+  canvas.addEventListener("touchcancel", handlePanEnd);
+
+  // Update zoom display initially and on state changes
+  updateZoomDisplay();
+  store.subscribe(updateZoomDisplay);
+
+  // Update zoom controls and pitch plate position
+  const updateZoomControlsPosition = () => {
+    const zoomControls = document.getElementById("zoomControls");
+    const panToggle = document.getElementById("panModeToggle");
+    if (!zoomControls) return;
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const isMobile = window.matchMedia("(max-width: 1024px)").matches;
+
+    if (isMobile) {
+      // Mobile: CSS handles positioning (top: 4px, right: 4px)
+      // Reset any desktop JS positioning
+      zoomControls.style.left = "";
+      zoomControls.style.top = "";
+      zoomControls.style.right = "";
+
+      // Pan toggle hidden on mobile via CSS
+    } else {
+      // Desktop: position relative to canvas wrapper
+      const wrapper = canvas.parentElement;
+      if (!wrapper) return;
+
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      const gap = 20;
+
+      // Position to the right of the canvas, relative to wrapper
+      const leftPos = canvasRect.right - wrapperRect.left + gap;
+      const topPos = canvasRect.top - wrapperRect.top + gap;
+
+      zoomControls.style.left = `${leftPos}px`;
+      zoomControls.style.top = `${topPos}px`;
+
+      // Pan toggle on desktop (below zoom controls)
+      if (panToggle) {
+        const zoomRect = zoomControls.getBoundingClientRect();
+        const panTopPos = zoomRect.bottom - wrapperRect.top + 25;
+        panToggle.style.left = `${leftPos}px`;
+        panToggle.style.top = `${panTopPos}px`;
+        panToggle.style.right = "auto";
+        panToggle.style.bottom = "auto";
+      }
+    }
+  };
+
+  // Position pitch plate control below zoom controls on desktop
   const handlePitchPlateInteraction = (canvasElement, context) => {
     if (!canvasElement || !context) return;
 
@@ -858,7 +1100,15 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
   // Canvas click handler
   const handleCanvasClick = (event) => {
-    event.preventDefault();
+    const state = store.getState();
+
+    // Skip if it's a pan operation or pan mode is active
+    if (isPanning || state.panMode) return;
+
+    // Only prevent default if the event is cancelable
+    if (event.cancelable) {
+      event.preventDefault();
+    }
 
     // Blur active element
     if (
@@ -884,8 +1134,13 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    const canvasX = (clientX - rect.left) * scaleX;
-    const canvasY = (clientY - rect.top) * scaleY;
+    let canvasX = (clientX - rect.left) * scaleX;
+    let canvasY = (clientY - rect.top) * scaleY;
+
+    // Account for zoom and pan
+    canvasX = (canvasX - state.panX) / state.zoomLevel;
+    canvasY = (canvasY - state.panY) / state.zoomLevel;
+
     const fieldX =
       (canvasX - canvasDimensions.origin.x) / canvasDimensions.scale;
     const fieldY =

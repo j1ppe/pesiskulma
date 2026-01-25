@@ -244,6 +244,15 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       );
     }
 
+    // Add custom measurement endpoints as snap targets
+    const state = store.getState();
+    if (state.customMeasurements && state.customMeasurements.length > 0) {
+      state.customMeasurements.forEach((measurement) => {
+        targets.push(measurement.start);
+        targets.push(measurement.end);
+      });
+    }
+
     console.log(
       "[SNAP DEBUG] Generated snap targets:",
       targets.length,
@@ -1544,15 +1553,42 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         fieldPos = snapPoint;
       }
 
-      // Update the measurement
+      // Find the old position of the point being dragged
+      const draggedMeasurement = state.customMeasurements.find(
+        (m) => m.id === state.draggingCustomMeasurement.measurementId,
+      );
+      if (!draggedMeasurement) {
+        return;
+      }
+
+      const oldPoint =
+        draggedMeasurement[state.draggingCustomMeasurement.handleType];
+
+      // Helper to check if two points are the same (within tolerance)
+      const pointsEqual = (p1, p2, tolerance = 0.01) => {
+        return (
+          Math.abs(p1.x - p2.x) < tolerance && Math.abs(p1.y - p2.y) < tolerance
+        );
+      };
+
+      // Update ALL measurements that share this point
       const updatedMeasurements = state.customMeasurements.map((m) => {
-        if (m.id === state.draggingCustomMeasurement.measurementId) {
-          return {
-            ...m,
-            [state.draggingCustomMeasurement.handleType]: fieldPos,
-          };
+        const updatedMeasurement = { ...m };
+        let changed = false;
+
+        // Check if this measurement's start point matches the old point
+        if (pointsEqual(m.start, oldPoint)) {
+          updatedMeasurement.start = fieldPos;
+          changed = true;
         }
-        return m;
+
+        // Check if this measurement's end point matches the old point
+        if (pointsEqual(m.end, oldPoint)) {
+          updatedMeasurement.end = fieldPos;
+          changed = true;
+        }
+
+        return updatedMeasurement;
       });
 
       store.setState({

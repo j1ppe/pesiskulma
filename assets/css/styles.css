@@ -1110,6 +1110,7 @@ canvas {
 
 /* Debug snap toggle */
 .debug-snap-toggle {
+  display: none; /* Hidden */
   position: fixed;
   bottom: 20px;
   left: 20px;

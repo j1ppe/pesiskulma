@@ -253,17 +253,6 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       });
     }
 
-    console.log(
-      "[SNAP DEBUG] Generated snap targets:",
-      targets.length,
-      "points",
-    );
-    console.log(
-      "[SNAP DEBUG] Sample targets (first 5):",
-      targets
-        .slice(0, 5)
-        .map((t) => ({ x: t.x.toFixed(1), y: t.y.toFixed(1) })),
-    );
     return targets;
   };
 
@@ -275,16 +264,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
    * @returns {Object|null} Snap point or null if none within threshold
    */
   const findNearestSnapPoint = (pos, snapTargets, threshold) => {
-    console.log(
-      "[SNAP DEBUG] Finding snap point for pos:",
-      pos,
-      "threshold:",
-      threshold,
-      "targets:",
-      snapTargets?.length,
-    );
     if (!snapTargets || snapTargets.length === 0) {
-      console.log("[SNAP DEBUG] No snap targets available");
       return null;
     }
 
@@ -308,26 +288,6 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       }
     });
 
-    // Show 3 closest points
-    allDistances.sort((a, b) => a.dist - b.dist);
-    console.log(
-      "[SNAP DEBUG] 3 nearest points:",
-      allDistances.slice(0, 3).map((d) => ({
-        distance: d.dist.toFixed(2) + "m",
-        point: { x: d.target.x.toFixed(1), y: d.target.y.toFixed(1) },
-      })),
-    );
-
-    if (nearest) {
-      console.log(
-        "[SNAP DEBUG] Found snap point:",
-        nearest,
-        "distance:",
-        minDist,
-      );
-    } else {
-      console.log("[SNAP DEBUG] No snap point within threshold");
-    }
     return nearest;
   };
 
@@ -920,11 +880,6 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
     // Generate and store snap targets for custom measurements (separate from normal edit snap targets)
     const customSnapTargets = generateSnapTargets(geometry);
-    console.log(
-      "[SNAP DEBUG] Storing customSnapTargets to state:",
-      customSnapTargets.length,
-      "points",
-    );
     store.setState((prevState) => ({ ...prevState, customSnapTargets }));
 
     // Update dimension displays
@@ -1120,11 +1075,6 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
     // Debug: Draw all snap points
     if (state.showDebugSnap && state.customSnapTargets) {
-      console.log(
-        "[DEBUG SNAP] Drawing",
-        state.customSnapTargets.length,
-        "snap points",
-      );
       state.customSnapTargets.forEach((snapPoint) => {
         const canvasPos = toCanvas(snapPoint, origin, scale);
 
@@ -1590,19 +1540,12 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       let snapFieldPos = fieldPos;
 
       // Apply snapping to nearest point
-      console.log(
-        "[SNAP DEBUG] Mousedown - fieldPos:",
-        fieldPos,
-        "state.customSnapTargets:",
-        state.customSnapTargets?.length,
-      );
       const snapPoint = findNearestSnapPoint(
         fieldPos,
         state.customSnapTargets,
         1.5, // SNAP_THRESHOLD - increased for better usability
       );
       if (snapPoint) {
-        console.log("[SNAP DEBUG] Mousedown - Snapped to:", snapPoint);
         snapFieldPos = snapPoint;
       }
 

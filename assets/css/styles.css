@@ -1483,3 +1483,239 @@ footer p {
     transform: translateY(0);
   }
 }
+
+/* ====================================
+   Pitch Plate Control
+   ==================================== */
+
+/* Desktop: Draggable window near canvas (positioned by JS) */
+.pitch-plate-control {
+  position: fixed;
+  width: 240px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(16, 75, 43, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  user-select: none;
+}
+
+.pitch-plate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  cursor: move;
+  padding: 4px 0;
+}
+
+.pitch-plate-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  pointer-events: none;
+}
+
+.pitch-plate-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pitch-plate-reset:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.pitch-plate-reset:active {
+  transform: scale(0.98);
+}
+
+#pitchPlateCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+  border-radius: 8px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0)),
+    radial-gradient(
+      circle at 20% 25%,
+      var(--color-field-accent-1),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 70% 35%,
+      var(--color-field-accent-2),
+      transparent 55%
+    ),
+    linear-gradient(180deg, var(--color-field-bg-1), var(--color-field-bg-2));
+  border: 1px solid rgba(16, 75, 43, 0.4);
+}
+
+.pitch-plate-hint {
+  margin: 8px 0 0 0;
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* Mobile: Floating button */
+.pitch-plate-toggle {
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.pitch-plate-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.pitch-plate-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Mobile: Modal */
+.pitch-plate-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pitch-plate-modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+.pitch-plate-modal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 90%;
+  width: 340px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.pitch-plate-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pitch-plate-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.pitch-plate-modal-close {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.pitch-plate-modal-close:hover {
+  color: #333;
+}
+
+#pitchPlateCanvasMobile {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+  border-radius: 8px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0)),
+    radial-gradient(
+      circle at 20% 25%,
+      var(--color-field-accent-1),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 70% 35%,
+      var(--color-field-accent-2),
+      transparent 55%
+    ),
+    linear-gradient(180deg, var(--color-field-bg-1), var(--color-field-bg-2));
+  border: 1px solid rgba(16, 75, 43, 0.4);
+  margin-bottom: 16px;
+}
+
+.pitch-plate-modal-content .pitch-plate-reset {
+  width: 100%;
+  justify-content: center;
+  padding: 12px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .pitch-plate-control {
+    display: none;
+  }
+
+  .pitch-plate-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .pitch-plate-toggle {
+    bottom: 70px;
+    right: 12px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .pitch-plate-modal-content {
+    width: 320px;
+    padding: 16px;
+  }
+}

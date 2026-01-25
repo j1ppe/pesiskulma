@@ -13,9 +13,25 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const netDistanceInput = document.getElementById("netDistance");
   const fieldButtons = document.querySelectorAll("[data-field]");
 
+  // Pitch plate elements
+  const pitchPlateControl = document.getElementById("pitchPlateControl");
+  const pitchPlateCanvas = document.getElementById("pitchPlateCanvas");
+  const pitchPlateCanvasMobile = document.getElementById(
+    "pitchPlateCanvasMobile",
+  );
+  const pitchPlateToggle = document.getElementById("pitchPlateToggle");
+  const pitchPlateModal = document.getElementById("pitchPlateModal");
+  const pitchPlateModalClose = document.getElementById("pitchPlateModalClose");
+  const pitchPlateReset = document.getElementById("pitchPlateReset");
+  const pitchPlateResetMobile = document.getElementById(
+    "pitchPlateResetMobile",
+  );
+
   if (!canvas || !netDistanceInput) return;
 
   const ctx = canvas.getContext("2d");
+  const pitchPlateCtx = pitchPlateCanvas?.getContext("2d");
+  const pitchPlateCtxMobile = pitchPlateCanvasMobile?.getContext("2d");
 
   // Canvas dimensions (updated on resize)
   let canvasDimensions = {
@@ -27,6 +43,9 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
   // Ball position (set by clicking on field)
   let ballPosition = null;
+
+  // Pitch plate offset (in meters from center)
+  let pitchOffset = { x: 0, y: 0 };
 
   /**
    * Format distance for display
@@ -310,7 +329,9 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
     // Draw ball and angle lines if ball position exists
     if (ballPosition) {
-      const homePlateCenter = toCanvas({ x: 0, y: 0 }, origin, scale);
+      // Launch point (home plate center + pitch offset)
+      const launchPoint = { x: pitchOffset.x, y: pitchOffset.y };
+      const launchPointCanvas = toCanvas(launchPoint, origin, scale);
       const ballCenter = toCanvas(
         { x: ballPosition.x, y: ballPosition.y },
         origin,
@@ -322,20 +343,20 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       ctx.lineWidth = 1;
       ctx.setLineDash([5, 5]);
 
-      // Direct line from home plate to ball
+      // Direct line from launch point to ball
       ctx.beginPath();
-      ctx.moveTo(homePlateCenter.x, homePlateCenter.y);
+      ctx.moveTo(launchPointCanvas.x, launchPointCanvas.y);
       ctx.lineTo(ballCenter.x, ballCenter.y);
       ctx.stroke();
 
-      // Vertical line from home plate
+      // Vertical line from launch point
       const verticalPoint = toCanvas(
-        { x: 0, y: ballPosition.y },
+        { x: launchPoint.x, y: ballPosition.y },
         origin,
         scale,
       );
       ctx.beginPath();
-      ctx.moveTo(homePlateCenter.x, homePlateCenter.y);
+      ctx.moveTo(launchPointCanvas.x, launchPointCanvas.y);
       ctx.lineTo(verticalPoint.x, verticalPoint.y);
       ctx.stroke();
 
@@ -354,9 +375,13 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         const netDistanceM = netDistanceCmActive / 100;
         const netY = 0.3 + netDistanceM;
 
-        if (netY <= ballPosition.y && netY > 0) {
-          const directLineX = (netY / ballPosition.y) * ballPosition.x;
-          const verticalLineX = 0;
+        if (netY <= ballPosition.y && netY > launchPoint.y) {
+          // Calculate where direct line intersects with net
+          const ballRelY = ballPosition.y - launchPoint.y;
+          const ballRelX = ballPosition.x - launchPoint.x;
+          const netRelY = netY - launchPoint.y;
+          const directLineX = launchPoint.x + (netRelY / ballRelY) * ballRelX;
+          const verticalLineX = launchPoint.x;
           const distanceM = Math.abs(directLineX - verticalLineX);
           const midX = (directLineX + verticalLineX) / 2;
           const labelPos = toCanvas({ x: midX, y: netY }, origin, scale);
@@ -369,19 +394,25 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         }
       }
 
-      // Distance labels
-      const ballSideDistanceM = Math.abs(ballPosition.x);
+      // Distance labels (relative to launch point)
+      const ballRelativeX = ballPosition.x - launchPoint.x;
+      const ballRelativeY = ballPosition.y - launchPoint.y;
+
+      const ballSideDistanceM = Math.abs(ballRelativeX);
       const ballLabelPos = toCanvas(
-        { x: ballPosition.x / 2, y: ballPosition.y },
+        { x: launchPoint.x + ballRelativeX / 2, y: ballPosition.y },
         origin,
         scale,
       );
 
       const plateDistanceM = Math.sqrt(
-        ballPosition.x * ballPosition.x + ballPosition.y * ballPosition.y,
+        ballRelativeX * ballRelativeX + ballRelativeY * ballRelativeY,
       );
       const plateLabelPos = toCanvas(
-        { x: ballPosition.x / 2, y: ballPosition.y / 2 },
+        {
+          x: launchPoint.x + ballRelativeX / 2,
+          y: launchPoint.y + ballRelativeY / 2,
+        },
         origin,
         scale,
       );
@@ -452,6 +483,149 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   };
 
   /**
+   * Draw pitch plate on given canvas
+   */
+  const drawPitchPlate = (context, canvasElement) => {
+    if (!context || !canvasElement) return;
+
+    const width = canvasElement.width;
+    const height = canvasElement.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // Plate dimensions (in meters)
+    const plateRadius = 0.3; // 30cm radius (60cm diameter)
+    const maxOffset = 0.35; // Allow 35cm offset from center
+
+    // Scale: pixels per meter (zoom in on plate, show less field area)
+    const viewMargin = 0.1; // Minimal margin around the plate
+    const pixelsPerMeter =
+      Math.min(width, height) / (plateRadius * 2 + viewMargin * 2);
+
+    // Clear canvas
+    context.clearRect(0, 0, width, height);
+
+    // Draw plate (white circle with subtle gradient)
+    const gradient = context.createRadialGradient(
+      centerX - plateRadius * pixelsPerMeter * 0.3,
+      centerY - plateRadius * pixelsPerMeter * 0.3,
+      0,
+      centerX,
+      centerY,
+      plateRadius * pixelsPerMeter,
+    );
+    gradient.addColorStop(0, "#ffffff");
+    gradient.addColorStop(0.7, "#f5f5f5");
+    gradient.addColorStop(1, "#e8e8e8");
+
+    context.fillStyle = gradient;
+    context.beginPath();
+    context.arc(centerX, centerY, plateRadius * pixelsPerMeter, 0, Math.PI * 2);
+    context.fill();
+
+    // Plate border
+    context.strokeStyle = "#cccccc";
+    context.lineWidth = 2;
+    context.stroke();
+
+    // Inner circle detail
+    context.strokeStyle = "#e0e0e0";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.arc(
+      centerX,
+      centerY,
+      plateRadius * pixelsPerMeter * 0.8,
+      0,
+      Math.PI * 2,
+    );
+    context.stroke();
+
+    // Center cross
+    context.strokeStyle = "#d0d0d0";
+    context.lineWidth = 1;
+    context.setLineDash([3, 3]);
+    context.beginPath();
+    context.moveTo(centerX - 10, centerY);
+    context.lineTo(centerX + 10, centerY);
+    context.moveTo(centerX, centerY - 10);
+    context.lineTo(centerX, centerY + 10);
+    context.stroke();
+    context.setLineDash([]);
+
+    // Calculate ball position
+    const ballX = centerX + pitchOffset.x * pixelsPerMeter;
+    const ballY = centerY - pitchOffset.y * pixelsPerMeter; // Negative because canvas Y increases downward
+
+    // Draw ball shadow
+    context.shadowColor = "rgba(0, 0, 0, 0.3)";
+    context.shadowBlur = 8;
+    context.shadowOffsetX = 3;
+    context.shadowOffsetY = 3;
+
+    // Draw ball (6.8cm diameter = 0.034m radius, to scale with 60cm plate)
+    const ballRadius = 0.034 * pixelsPerMeter;
+    context.fillStyle = "#90EE90";
+    context.beginPath();
+    context.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+    context.fill();
+
+    context.shadowColor = "transparent";
+
+    // Ball border
+    context.strokeStyle = "#6B8E6B";
+    context.lineWidth = 2;
+    context.stroke();
+
+    // Ball highlight
+    context.fillStyle = "rgba(255, 255, 255, 0.4)";
+    context.beginPath();
+    context.arc(
+      ballX - ballRadius * 0.3,
+      ballY - ballRadius * 0.3,
+      ballRadius * 0.3,
+      0,
+      Math.PI * 2,
+    );
+    context.fill();
+
+    // Store canvas info for interaction
+    canvasElement.plateInfo = {
+      centerX,
+      centerY,
+      pixelsPerMeter,
+      plateRadius,
+      maxOffset,
+    };
+  };
+
+  /**
+   * Reset pitch offset to center
+   */
+  const resetPitchOffset = () => {
+    pitchOffset = { x: 0, y: 0 };
+    drawPitchPlate(pitchPlateCtx, pitchPlateCanvas);
+    drawPitchPlate(pitchPlateCtxMobile, pitchPlateCanvasMobile);
+    drawField();
+  };
+
+  /**
+   * Position pitch plate control next to canvas
+   */
+  const positionPitchPlateControl = () => {
+    if (!pitchPlateControl || window.innerWidth <= 1024) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const gap = 20; // Gap between canvas and control
+
+    // Position to the right of canvas, aligned with top
+    pitchPlateControl.style.left = rect.right + gap + "px";
+    pitchPlateControl.style.top = rect.top + "px";
+    pitchPlateControl.style.right = "auto";
+    pitchPlateControl.style.bottom = "auto";
+  };
+
+  /**
    * Resize canvas and redraw
    */
   const resizeCanvas = () => {
@@ -483,6 +657,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     canvas.height = canvasDimensions.height;
 
     drawField();
+    positionPitchPlateControl();
   };
 
   // Event listeners
@@ -508,6 +683,178 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   netDistanceInput.addEventListener("input", () => {
     drawField();
   });
+
+  // Pitch plate interaction
+  const handlePitchPlateInteraction = (canvasElement, context) => {
+    if (!canvasElement || !context) return;
+
+    let isDragging = false;
+
+    const updateBallPosition = (event) => {
+      const rect = canvasElement.getBoundingClientRect();
+      let clientX, clientY;
+
+      if (event.type.startsWith("touch")) {
+        const touch = event.touches[0] || event.changedTouches[0];
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+      } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+      }
+
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+
+      const info = canvasElement.plateInfo;
+      if (!info) return;
+
+      // Convert to field coordinates (meters)
+      const offsetX = (x - info.centerX) / info.pixelsPerMeter;
+      const offsetY = -(y - info.centerY) / info.pixelsPerMeter;
+
+      // Clamp to allowed range
+      const maxOffset = info.maxOffset;
+      pitchOffset.x = Math.max(-maxOffset, Math.min(maxOffset, offsetX));
+      pitchOffset.y = Math.max(-maxOffset, Math.min(maxOffset, offsetY));
+
+      // Redraw
+      drawPitchPlate(context, canvasElement);
+      drawField();
+    };
+
+    const handleStart = (event) => {
+      event.preventDefault();
+      isDragging = true;
+      updateBallPosition(event);
+    };
+
+    const handleMove = (event) => {
+      if (!isDragging) return;
+      event.preventDefault();
+      updateBallPosition(event);
+    };
+
+    const handleEnd = (event) => {
+      event.preventDefault();
+      isDragging = false;
+    };
+
+    canvasElement.addEventListener("mousedown", handleStart);
+    canvasElement.addEventListener("mousemove", handleMove);
+    canvasElement.addEventListener("mouseup", handleEnd);
+    canvasElement.addEventListener("mouseleave", handleEnd);
+
+    canvasElement.addEventListener("touchstart", handleStart);
+    canvasElement.addEventListener("touchmove", handleMove);
+    canvasElement.addEventListener("touchend", handleEnd);
+  };
+
+  // Initialize pitch plate interaction
+  if (pitchPlateCanvas && pitchPlateCtx) {
+    handlePitchPlateInteraction(pitchPlateCanvas, pitchPlateCtx);
+  }
+  if (pitchPlateCanvasMobile && pitchPlateCtxMobile) {
+    handlePitchPlateInteraction(pitchPlateCanvasMobile, pitchPlateCtxMobile);
+  }
+
+  // Make pitch plate control draggable (desktop only)
+  if (pitchPlateControl) {
+    const header = pitchPlateControl.querySelector(".pitch-plate-header");
+    if (header) {
+      let isDragging = false;
+      let currentX;
+      let currentY;
+      let initialX;
+      let initialY;
+
+      const dragStart = (e) => {
+        // Only drag when clicking on header, not buttons
+        if (e.target.tagName === "BUTTON" || e.target.closest("button")) {
+          return;
+        }
+
+        if (e.type === "touchstart") {
+          initialX = e.touches[0].clientX - pitchPlateControl.offsetLeft;
+          initialY = e.touches[0].clientY - pitchPlateControl.offsetTop;
+        } else {
+          initialX = e.clientX - pitchPlateControl.offsetLeft;
+          initialY = e.clientY - pitchPlateControl.offsetTop;
+        }
+
+        isDragging = true;
+        pitchPlateControl.style.transition = "none";
+      };
+
+      const drag = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        if (e.type === "touchmove") {
+          currentX = e.touches[0].clientX - initialX;
+          currentY = e.touches[0].clientY - initialY;
+        } else {
+          currentX = e.clientX - initialX;
+          currentY = e.clientY - initialY;
+        }
+
+        // Keep within viewport bounds
+        const maxX = window.innerWidth - pitchPlateControl.offsetWidth;
+        const maxY = window.innerHeight - pitchPlateControl.offsetHeight;
+
+        currentX = Math.max(0, Math.min(currentX, maxX));
+        currentY = Math.max(0, Math.min(currentY, maxY));
+
+        pitchPlateControl.style.left = currentX + "px";
+        pitchPlateControl.style.top = currentY + "px";
+        pitchPlateControl.style.right = "auto";
+        pitchPlateControl.style.bottom = "auto";
+      };
+
+      const dragEnd = () => {
+        isDragging = false;
+      };
+
+      header.addEventListener("mousedown", dragStart);
+      document.addEventListener("mousemove", drag);
+      document.addEventListener("mouseup", dragEnd);
+
+      header.addEventListener("touchstart", dragStart);
+      document.addEventListener("touchmove", drag);
+      document.addEventListener("touchend", dragEnd);
+    }
+  }
+
+  // Pitch plate reset buttons
+  if (pitchPlateReset) {
+    pitchPlateReset.addEventListener("click", resetPitchOffset);
+  }
+  if (pitchPlateResetMobile) {
+    pitchPlateResetMobile.addEventListener("click", resetPitchOffset);
+  }
+
+  // Mobile modal toggle
+  if (pitchPlateToggle && pitchPlateModal) {
+    pitchPlateToggle.addEventListener("click", () => {
+      pitchPlateModal.classList.add("active");
+      drawPitchPlate(pitchPlateCtxMobile, pitchPlateCanvasMobile);
+    });
+  }
+
+  if (pitchPlateModalClose && pitchPlateModal) {
+    pitchPlateModalClose.addEventListener("click", () => {
+      pitchPlateModal.classList.remove("active");
+    });
+  }
+
+  // Close modal on backdrop click
+  if (pitchPlateModal) {
+    pitchPlateModal.addEventListener("click", (event) => {
+      if (event.target === pitchPlateModal) {
+        pitchPlateModal.classList.remove("active");
+      }
+    });
+  }
 
   // Canvas click handler
   const handleCanvasClick = (event) => {
@@ -553,5 +900,10 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
   // Initialize with women's field
   store.setFieldProfile(fieldProfileWomen);
+
+  // Draw initial pitch plates
+  drawPitchPlate(pitchPlateCtx, pitchPlateCanvas);
+  drawPitchPlate(pitchPlateCtxMobile, pitchPlateCanvasMobile);
+
   resizeCanvas();
 })();

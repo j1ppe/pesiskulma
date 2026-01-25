@@ -48,6 +48,91 @@
 
     <canvas id="fieldCanvas"></canvas>
 
+    <!-- Pitch Plate Control (Desktop) -->
+    <div class="pitch-plate-control" id="pitchPlateControl">
+      <div class="pitch-plate-header">
+        <h3>Syöttölautanen</h3>
+        <button
+          class="pitch-plate-reset"
+          id="pitchPlateReset"
+          title="Palauta keskelle"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M14 8A6 6 0 1 1 8 2M8 2l3 3M8 2l3-3" />
+          </svg>
+          Reset
+        </button>
+      </div>
+      <canvas id="pitchPlateCanvas" width="200" height="200"></canvas>
+      <p class="pitch-plate-hint">
+        Siirrä palluraa asettaaksesi lyönnin lähtöpiste
+      </p>
+    </div>
+
+    <!-- Mobile: Floating Button -->
+    <button
+      class="pitch-plate-toggle"
+      id="pitchPlateToggle"
+      title="Avaa syöttölautasen asetukset"
+    >
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <circle cx="12" cy="12" r="8" />
+        <circle cx="12" cy="12" r="2" fill="currentColor" />
+      </svg>
+    </button>
+
+    <!-- Mobile: Modal Overlay -->
+    <div class="pitch-plate-modal" id="pitchPlateModal">
+      <div class="pitch-plate-modal-content">
+        <div class="pitch-plate-modal-header">
+          <h3>Syöttölautanen</h3>
+          <button class="pitch-plate-modal-close" id="pitchPlateModalClose">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <canvas id="pitchPlateCanvasMobile" width="280" height="280"></canvas>
+        <p class="pitch-plate-hint">
+          Siirrä palluraa asettaaksesi lyönnin lähtöpiste
+        </p>
+        <button class="pitch-plate-reset" id="pitchPlateResetMobile">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M14 8A6 6 0 1 1 8 2M8 2l3 3M8 2l3-3" />
+          </svg>
+          Palauta keskelle
+        </button>
+      </div>
+    </div>
+
     <footer class="site-footer" data-footer></footer>
   </body>
 </html>

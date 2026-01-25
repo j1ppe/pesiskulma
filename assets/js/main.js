@@ -439,6 +439,64 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   };
 
   /**
+   * Calculate connected measurements and total distance
+   * @param {Object} measurement - Single measurement
+   * @param {Array} allMeasurements - All custom measurements
+   * @returns {{connectedCount: number, totalDistance: number}} Connection info
+   */
+  const getConnectedMeasurementsInfo = (measurement, allMeasurements) => {
+    const pointsEqual = (p1, p2, tolerance = 0.01) => {
+      return (
+        Math.abs(p1.x - p2.x) < tolerance && Math.abs(p1.y - p2.y) < tolerance
+      );
+    };
+
+    // Find all measurements connected to this one
+    const visited = new Set();
+    const toVisit = [measurement.id];
+    const connected = [];
+
+    while (toVisit.length > 0) {
+      const currentId = toVisit.pop();
+      if (visited.has(currentId)) continue;
+      visited.add(currentId);
+
+      const current = allMeasurements.find((m) => m.id === currentId);
+      if (!current) continue;
+
+      connected.push(current);
+
+      // Find measurements that share a point with current
+      allMeasurements.forEach((m) => {
+        if (visited.has(m.id)) return;
+
+        const sharesPoint =
+          pointsEqual(m.start, current.start) ||
+          pointsEqual(m.start, current.end) ||
+          pointsEqual(m.end, current.start) ||
+          pointsEqual(m.end, current.end);
+
+        if (sharesPoint) {
+          toVisit.push(m.id);
+        }
+      });
+    }
+
+    // Calculate total distance
+    let totalDistance = 0;
+    connected.forEach((m) => {
+      const dx = m.end.x - m.start.x;
+      const dy = m.end.y - m.start.y;
+      totalDistance += Math.sqrt(dx * dx + dy * dy);
+    });
+
+    return {
+      connectedCount: connected.length,
+      totalDistance,
+    };
+  };
+
+  /**
    * Update dimension displays
    */
   const updateDimensions = (values) => {
@@ -893,6 +951,49 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         const startCanvas = toCanvas(measurement.start, origin, scale);
         const endCanvas = toCanvas(measurement.end, origin, scale);
 
+        // Calculate distance for this segment
+        const dx = measurement.end.x - measurement.start.x;
+        const dy = measurement.end.y - measurement.start.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Get connected measurements info
+        const connectedInfo = getConnectedMeasurementsInfo(
+          measurement,
+          state.customMeasurements,
+        );
+
+        // Create hit area for tooltip
+        const midX = (startCanvas.x + endCanvas.x) / 2;
+        const midY = (startCanvas.y + endCanvas.y) / 2;
+        
+        // Text dimensions for hit area
+        ctx.save();
+        ctx.font = "bold 16px sans-serif";
+        const text = `${distance.toFixed(2)} m`;
+        const textWidth = ctx.measureText(text).width;
+        const textHeight = 20; // Approximate text height
+        ctx.restore();
+
+        // Add to hit areas (matching format expected by findHoveredMeasurement)
+        measurementHitAreas.push({
+          startX: startCanvas.x,
+          startY: startCanvas.y,
+          endX: endCanvas.x,
+          endY: endCanvas.y,
+          labelX: midX - textWidth / 2 - 5,
+          labelY: midY - textHeight - 5,
+          labelWidth: textWidth + 10,
+          labelHeight: textHeight + 10,
+          title: "Oma mitta",
+          tooltipData: {
+            value: formatMeters(distance),
+            description:
+              connectedInfo.connectedCount > 1
+                ? `Yhteispituus: ${formatMeters(connectedInfo.totalDistance)} (${connectedInfo.connectedCount} janaa)`
+                : "Etäisyys pisteestä toiseen",
+          },
+        });
+
         // Draw line
         ctx.strokeStyle = "rgb(255, 165, 0)"; // Orange color
         ctx.lineWidth = 3;
@@ -934,21 +1035,12 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         ctx.fill();
         ctx.stroke();
 
-        // Calculate and draw distance
-        const dx = measurement.end.x - measurement.start.x;
-        const dy = measurement.end.y - measurement.start.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        const midX = (startCanvas.x + endCanvas.x) / 2;
-        const midY = (startCanvas.y + endCanvas.y) / 2;
-
+        // Draw distance text
         ctx.save();
         ctx.font = "bold 16px sans-serif";
         ctx.fillStyle = "rgb(255, 165, 0)";
         ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
         ctx.lineWidth = 3;
-        const text = `${distance.toFixed(2)} m`;
-        const textWidth = ctx.measureText(text).width;
         ctx.strokeText(text, midX - textWidth / 2, midY - 10);
         ctx.fillText(text, midX - textWidth / 2, midY - 10);
         ctx.restore();

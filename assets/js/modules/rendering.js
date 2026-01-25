@@ -335,9 +335,10 @@ export const calculateCanvasDimensions = (
   legendHeight,
   footerHeight,
 ) => {
-  // Fixed canvas dimensions for consistency across field types
-  const CANVAS_WIDTH = 550;
-  const CANVAS_HEIGHT = 1000;
+  // Responsive canvas dimensions - larger on desktop, compact on mobile
+  const isMobile = viewportWidth <= 768;
+  const CANVAS_WIDTH = isMobile ? 550 : 800;
+  const CANVAS_HEIGHT = isMobile ? 1000 : 1300;
 
   // Calculate field dimensions from profile
   // Women's field is narrower than men's field
@@ -352,8 +353,6 @@ export const calculateCanvasDimensions = (
     fieldProfile.backBoundary.distanceFromHomeLine +
     topMargin +
     bottomMargin;
-
-  const isMobile = viewportWidth <= 768;
 
   // Smaller padding on mobile for maximum field size
   const paddingX = isMobile ? 2 : 8;

@@ -601,6 +601,17 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   };
 
   /**
+   * Update pitch offset indicator visibility
+   */
+  const updatePitchOffsetIndicator = () => {
+    const indicator = document.getElementById('pitchOffsetIndicator');
+    if (!indicator) return;
+    
+    const hasOffset = pitchOffset.x !== 0 || pitchOffset.y !== 0;
+    indicator.classList.toggle('active', hasOffset);
+  };
+
+  /**
    * Reset pitch offset to center
    */
   const resetPitchOffset = () => {
@@ -608,6 +619,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     drawPitchPlate(pitchPlateCtx, pitchPlateCanvas);
     drawPitchPlate(pitchPlateCtxMobile, pitchPlateCanvasMobile);
     drawField();
+    updatePitchOffsetIndicator();
   };
 
   /**
@@ -969,6 +981,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       // Redraw
       drawPitchPlate(context, canvasElement);
       drawField();
+      updatePitchOffsetIndicator();
     };
 
     const handleStart = (event) => {
@@ -1286,6 +1299,9 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   // Draw initial pitch plates
   drawPitchPlate(pitchPlateCtx, pitchPlateCanvas);
   drawPitchPlate(pitchPlateCtxMobile, pitchPlateCanvasMobile);
+
+  // Initialize pitch offset indicator
+  updatePitchOffsetIndicator();
 
   resizeCanvas();
 })();

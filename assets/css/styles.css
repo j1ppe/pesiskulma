@@ -1737,6 +1737,24 @@ footer p {
   transform: scale(0.95);
 }
 
+/* Pitch offset indicator (when offset is not centered) */
+.pitch-offset-indicator {
+  display: none;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background: #ff5252;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.pitch-offset-indicator.active {
+  display: block;
+}
+
 /* Mobile: Modal */
 .pitch-plate-modal {
   display: none;

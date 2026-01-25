@@ -298,7 +298,8 @@ export const calculateGeometry = (fieldProfile, editablePoints, scale = 1) => {
   // Initialize editable points if not set
   const initializedEditablePoints = {
     homePathStart: editablePoints.homePathStart || {
-      ...originalHomePathFirstLine.start,
+      x: diagonalLeftEnd.x - 2,
+      y: thirdBaseLineY,
     },
     homePathMid: editablePoints.homePathMid || {
       ...originalHomePathFirstLine.end,

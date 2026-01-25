@@ -865,7 +865,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
             side: "bottom",
             tooltipData: {
               value: formatMeters(offsetDistance),
-              description: "Etäisyys alkuperäisestä lähtöpisteestä",
+              description: "Etäisyys pesän kulmasta",
             },
             color: "#ff9500",
             textColor: "#ff9500",

@@ -834,7 +834,9 @@ canvas:hover {
 .zoom-controls {
   position: absolute;
   top: 20px;
-  right: 10px;
+  left: calc(
+    50% + 275px + 20px
+  ); /* Canvas center (50%) + half canvas width (275px) + gap (20px) */
   display: flex;
   align-items: center;
   gap: 10px;
@@ -993,6 +995,7 @@ canvas:hover {
     /* Override dynamic positioning for mobile - use fixed values */
     top: 4px !important;
     right: 4px !important;
+    left: auto !important; /* Reset desktop left positioning */
     gap: 6px;
     padding: 4px 10px;
     border-radius: 20px;
@@ -1016,6 +1019,7 @@ canvas:hover {
   .custom-measure-toggle {
     bottom: 4px !important;
     left: 4px !important;
+    right: auto !important; /* Reset desktop positioning */
     padding: 6px 10px;
     font-size: 12px;
   }
@@ -1030,7 +1034,7 @@ canvas:hover {
 .custom-measure-toggle {
   position: absolute;
   bottom: 20px;
-  left: 20px;
+  right: calc(50% + 275px + 20px); /* Same gap from canvas as zoom controls */
   display: inline-flex;
   align-items: center;
   gap: 8px;

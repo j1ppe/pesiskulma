@@ -396,6 +396,40 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   };
 
   /**
+   * Check if mouse is over a custom measurement handle
+   * @param {Point} fieldPos - Mouse position in field coordinates
+   * @param {Array} customMeasurements - Custom measurements array
+   * @param {Object} canvasDimensions - Canvas dimensions for scaling
+   * @param {number} handleRadius - Handle radius in meters
+   * @returns {{measurementId: number, handleType: string}|null} Handle info or null
+   */
+  const getCustomMeasurementHandleUnderMouse = (
+    fieldPos,
+    customMeasurements,
+    handleRadius = 0.8,
+  ) => {
+    if (!customMeasurements || customMeasurements.length === 0) {
+      return null;
+    }
+
+    for (const measurement of customMeasurements) {
+      // Check start point
+      const distToStart = distanceBetween(fieldPos, measurement.start);
+      if (distToStart < handleRadius) {
+        return { measurementId: measurement.id, handleType: "start" };
+      }
+
+      // Check end point
+      const distToEnd = distanceBetween(fieldPos, measurement.end);
+      if (distToEnd < handleRadius) {
+        return { measurementId: measurement.id, handleType: "end" };
+      }
+    }
+
+    return null;
+  };
+
+  /**
    * Update dimension displays
    */
   const updateDimensions = (values) => {
@@ -858,13 +892,27 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         ctx.lineTo(endCanvas.x, endCanvas.y);
         ctx.stroke();
 
+        // Check if this measurement is being dragged
+        const isDragging =
+          state.draggingCustomMeasurement?.measurementId === measurement.id;
+
         // Draw endpoints (white border + orange fill, like edit handles)
+        // Larger radius if being dragged
+        const startRadius =
+          isDragging && state.draggingCustomMeasurement.handleType === "start"
+            ? 8
+            : 5;
+        const endRadius =
+          isDragging && state.draggingCustomMeasurement.handleType === "end"
+            ? 8
+            : 5;
+
         // Start point
         ctx.fillStyle = "rgb(255, 165, 0)";
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(startCanvas.x, startCanvas.y, 5, 0, Math.PI * 2);
+        ctx.arc(startCanvas.x, startCanvas.y, startRadius, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
@@ -873,7 +921,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(endCanvas.x, endCanvas.y, 5, 0, Math.PI * 2);
+        ctx.arc(endCanvas.x, endCanvas.y, endRadius, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
@@ -1410,18 +1458,35 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const originalMouseDownHandler = mouseDownHandler;
   const wrappedMouseDownHandler = (event) => {
     const state = store.getState();
+    const canvasPos = getCanvasMousePosition(event, canvas);
+    const fieldPos = fromCanvasWithZoom(
+      canvasPos,
+      canvasDimensions.origin,
+      canvasDimensions.scale,
+      state.zoomLevel,
+      state.panX,
+      state.panY,
+    );
 
-    // Handle custom measurement mode - start drag
+    // Check if clicking on a custom measurement handle (works even when not in custom measurement mode)
+    const customHandle = getCustomMeasurementHandleUnderMouse(
+      fieldPos,
+      state.customMeasurements,
+      0.8,
+    );
+
+    if (customHandle) {
+      // Start dragging this custom measurement handle
+      store.setState({
+        draggingCustomMeasurement: customHandle,
+      });
+      canvas.style.cursor = "grabbing";
+      return; // Don't execute other mouse down logic
+    }
+
+    // Handle custom measurement mode - start new measurement
     if (state.customMeasurementMode) {
-      const canvasPos = getCanvasMousePosition(event, canvas);
-      let fieldPos = fromCanvasWithZoom(
-        canvasPos,
-        canvasDimensions.origin,
-        canvasDimensions.scale,
-        state.zoomLevel,
-        state.panX,
-        state.panY,
-      );
+      let snapFieldPos = fieldPos;
 
       // Apply snapping to nearest point
       console.log(
@@ -1437,15 +1502,15 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       );
       if (snapPoint) {
         console.log("[SNAP DEBUG] Mousedown - Snapped to:", snapPoint);
-        fieldPos = snapPoint;
+        snapFieldPos = snapPoint;
       }
 
       // Always set the start point on mouse down
       store.setState({
-        customMeasurementPreview: fieldPos,
+        customMeasurementPreview: snapFieldPos,
         customMeasurementDragging: true,
       });
-      canvas.dataset.previewEnd = JSON.stringify(fieldPos);
+      canvas.dataset.previewEnd = JSON.stringify(snapFieldPos);
       drawField();
       return; // Don't execute normal mouse down logic
     }
@@ -1457,19 +1522,48 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const originalMouseMoveHandler = mouseMoveHandler;
   const wrappedMouseMoveHandler = (event) => {
     const state = store.getState();
+    const canvasPos = getCanvasMousePosition(event, canvas);
+    let fieldPos = fromCanvasWithZoom(
+      canvasPos,
+      canvasDimensions.origin,
+      canvasDimensions.scale,
+      state.zoomLevel,
+      state.panX,
+      state.panY,
+    );
+
+    // Handle dragging custom measurement handle
+    if (state.draggingCustomMeasurement) {
+      // Apply snapping
+      const snapPoint = findNearestSnapPoint(
+        fieldPos,
+        state.customSnapTargets,
+        1.5,
+      );
+      if (snapPoint) {
+        fieldPos = snapPoint;
+      }
+
+      // Update the measurement
+      const updatedMeasurements = state.customMeasurements.map((m) => {
+        if (m.id === state.draggingCustomMeasurement.measurementId) {
+          return {
+            ...m,
+            [state.draggingCustomMeasurement.handleType]: fieldPos,
+          };
+        }
+        return m;
+      });
+
+      store.setState({
+        customMeasurements: updatedMeasurements,
+      });
+      drawField();
+      return; // Don't execute other mouse move logic
+    }
 
     // Update custom measurement preview
     if (state.customMeasurementMode && state.customMeasurementPreview) {
-      const canvasPos = getCanvasMousePosition(event, canvas);
-      let fieldPos = fromCanvasWithZoom(
-        canvasPos,
-        canvasDimensions.origin,
-        canvasDimensions.scale,
-        state.zoomLevel,
-        state.panX,
-        state.panY,
-      );
-
       // Apply snapping to nearest point
       const snapPoint = findNearestSnapPoint(
         fieldPos,
@@ -1492,6 +1586,16 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const originalMouseUpHandler = mouseUpHandler;
   const wrappedMouseUpHandler = (event) => {
     const state = store.getState();
+
+    // Handle dragging custom measurement handle - finish
+    if (state.draggingCustomMeasurement) {
+      store.setState({
+        draggingCustomMeasurement: null,
+      });
+      canvas.style.cursor = "default";
+      drawField();
+      return;
+    }
 
     // Handle custom measurement mode - finish drag
     if (
@@ -1554,7 +1658,50 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     originalMouseUpHandler(event);
   };
 
-  canvas.addEventListener("mousemove", hoverHandler);
+  // Wrap hover handler to show grab cursor on custom measurement handles
+  const originalHoverHandler = hoverHandler;
+  const wrappedHoverHandler = (event) => {
+    const state = store.getState();
+    const canvasPos = getCanvasMousePosition(event, canvas);
+    const fieldPos = fromCanvasWithZoom(
+      canvasPos,
+      canvasDimensions.origin,
+      canvasDimensions.scale,
+      state.zoomLevel,
+      state.panX,
+      state.panY,
+    );
+
+    // Check if hovering over a custom measurement handle
+    const customHandle = getCustomMeasurementHandleUnderMouse(
+      fieldPos,
+      state.customMeasurements,
+      0.8,
+    );
+
+    if (customHandle && !state.draggingCustomMeasurement) {
+      canvas.style.cursor = "grab";
+      // Don't show tooltip when hovering handle
+      if (tooltip) {
+        tooltip.style.display = "none";
+      }
+      return;
+    }
+
+    // If dragging custom measurement handle, show grabbing cursor
+    if (state.draggingCustomMeasurement) {
+      canvas.style.cursor = "grabbing";
+      if (tooltip) {
+        tooltip.style.display = "none";
+      }
+      return;
+    }
+
+    // Otherwise use original hover handler
+    originalHoverHandler(event);
+  };
+
+  canvas.addEventListener("mousemove", wrappedHoverHandler);
   canvas.addEventListener("mousedown", wrappedMouseDownHandler);
   canvas.addEventListener("mousemove", wrappedMouseMoveHandler);
   canvas.addEventListener("mouseup", wrappedMouseUpHandler);
@@ -1616,14 +1763,19 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         state.editablePoints,
         0.5,
       );
+      const customHandle = getCustomMeasurementHandleUnderMouse(
+        fieldPos,
+        state.customMeasurements,
+        0.8,
+      );
 
-      if (handleUnder || state.customMeasurementMode) {
+      if (handleUnder || customHandle || state.customMeasurementMode) {
         e.preventDefault(); // Prevent scrolling when touching handle or in custom measurement mode
         isDragging = true;
       }
 
       wrappedMouseDownHandler(mouseEvent);
-      hoverHandler(mouseEvent);
+      wrappedHoverHandler(mouseEvent);
     },
     { passive: false },
   );

@@ -141,6 +141,7 @@ export const createInitialState = () => ({
   customMeasurements: [],
   customMeasurementPreview: null,
   customMeasurementDragging: false,
+  draggingCustomMeasurement: null, // { measurementId, handleType: 'start'|'end' } or null
   showDebugSnap: false,
   draggingHandle: null,
   editablePoints: {

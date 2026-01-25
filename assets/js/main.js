@@ -1061,6 +1061,10 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
           : fieldProfileWomen;
 
       store.setFieldProfile(profile);
+      // Reset zoom and pan when switching fields so view starts fresh
+      store.setZoom(1.0);
+      store.setPan(0, 0);
+      updateZoomDisplay();
       resizeCanvas();
     });
   });

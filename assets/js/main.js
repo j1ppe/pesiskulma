@@ -1077,6 +1077,8 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       );
       if (confirmed) {
         store.resetEditablePoints();
+        // Also clear custom measurements
+        store.setState({ customMeasurements: [] });
         drawField();
       }
     });
@@ -1131,7 +1133,12 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
           originalGeometry.initializedEditablePoints.homePathEnd.y,
       ) > 0.001;
 
-    resetEdits.style.display = hasEdits ? "block" : "none";
+    // Also check if there are custom measurements
+    const hasCustomMeasurements =
+      state.customMeasurements && state.customMeasurements.length > 0;
+
+    resetEdits.style.display =
+      hasEdits || hasCustomMeasurements ? "block" : "none";
   };
 
   // Update reset button position to be on top of the canvas (top-left corner of background)

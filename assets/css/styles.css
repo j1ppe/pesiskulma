@@ -164,10 +164,6 @@ canvas {
   transition: transform var(--transition-base);
 }
 
-canvas:hover {
-  transform: translateY(-2px);
-}
-
 .control-dock {
   width: min(100%, 960px);
   margin: 4px auto 2px;

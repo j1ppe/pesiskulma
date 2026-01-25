@@ -965,7 +965,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         // Create hit area for tooltip
         const midX = (startCanvas.x + endCanvas.x) / 2;
         const midY = (startCanvas.y + endCanvas.y) / 2;
-        
+
         // Text dimensions for hit area
         ctx.save();
         ctx.font = "bold 16px sans-serif";

@@ -772,8 +772,12 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       // Update button appearance
       panModeToggle.classList.toggle("active", newMode);
 
-      // Update cursor style
-      canvas.style.cursor = newMode ? "grab" : "crosshair";
+      // Update cursor style (hover handler will take over when pan mode is off)
+      if (newMode) {
+        canvas.style.cursor = "grab";
+      } else {
+        canvas.style.cursor = "";
+      }
     });
   }
 
@@ -863,6 +867,8 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     // Restore cursor
     if (state.panMode) {
       canvas.style.cursor = "grab";
+    } else {
+      canvas.style.cursor = "";
     }
   };
 
@@ -1098,12 +1104,118 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     });
   }
 
-  // Canvas click handler
+  // Ball dragging functionality
+  let isDraggingBall = false;
+  let wasDragged = false;
+
+  // Helper to convert screen coordinates to field coordinates
+  const screenToFieldCoords = (clientX, clientY) => {
+    const state = store.getState();
+    const rect = canvas.getBoundingClientRect();
+
+    // Account for CSS scaling of canvas
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    let canvasX = (clientX - rect.left) * scaleX;
+    let canvasY = (clientY - rect.top) * scaleY;
+
+    // Account for zoom and pan
+    canvasX = (canvasX - state.panX) / state.zoomLevel;
+    canvasY = (canvasY - state.panY) / state.zoomLevel;
+
+    const fieldX =
+      (canvasX - canvasDimensions.origin.x) / canvasDimensions.scale;
+    const fieldY =
+      -(canvasY - canvasDimensions.origin.y) / canvasDimensions.scale;
+
+    return { x: fieldX, y: fieldY };
+  };
+
+  // Check if mouse/touch is near the ball
+  const isNearBall = (fieldX, fieldY) => {
+    if (!ballPosition) return false;
+    const dx = fieldX - ballPosition.x;
+    const dy = fieldY - ballPosition.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return distance < 2.0; // 2 meters radius
+  };
+
+  const handleBallDragStart = (event) => {
+    const state = store.getState();
+
+    // Skip if pan mode is active or already panning
+    if (state.panMode || isPanning) return;
+
+    let clientX, clientY;
+    const isTouch = event.type.startsWith("touch");
+
+    if (isTouch) {
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    } else {
+      // Only left mouse button
+      if (event.button !== 0) return;
+      clientX = event.clientX;
+      clientY = event.clientY;
+    }
+
+    const fieldPos = screenToFieldCoords(clientX, clientY);
+
+    if (isNearBall(fieldPos.x, fieldPos.y)) {
+      isDraggingBall = true;
+      wasDragged = false;
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      canvas.style.cursor = "grabbing";
+    }
+  };
+
+  const handleBallDragMove = (event) => {
+    if (!isDraggingBall) return;
+
+    wasDragged = true;
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+
+    let clientX, clientY;
+    const isTouch = event.type.startsWith("touch");
+
+    if (isTouch) {
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    } else {
+      clientX = event.clientX;
+      clientY = event.clientY;
+    }
+
+    const fieldPos = screenToFieldCoords(clientX, clientY);
+    ballPosition = fieldPos;
+    drawField();
+  };
+
+  const handleBallDragEnd = () => {
+    if (isDraggingBall) {
+      isDraggingBall = false;
+      canvas.style.cursor = "";
+    }
+  };
+
+  // Canvas click handler (only if not dragged)
   const handleCanvasClick = (event) => {
     const state = store.getState();
 
-    // Skip if it's a pan operation or pan mode is active
-    if (isPanning || state.panMode) return;
+    // Skip if it's a pan operation, pan mode is active, or was a drag
+    if (isPanning || state.panMode || wasDragged) {
+      wasDragged = false;
+      return;
+    }
 
     // Only prevent default if the event is cancelable
     if (event.cancelable) {
@@ -1130,25 +1242,40 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       clientY = event.clientY;
     }
 
-    // Account for CSS scaling of canvas
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
-    let canvasX = (clientX - rect.left) * scaleX;
-    let canvasY = (clientY - rect.top) * scaleY;
-
-    // Account for zoom and pan
-    canvasX = (canvasX - state.panX) / state.zoomLevel;
-    canvasY = (canvasY - state.panY) / state.zoomLevel;
-
-    const fieldX =
-      (canvasX - canvasDimensions.origin.x) / canvasDimensions.scale;
-    const fieldY =
-      -(canvasY - canvasDimensions.origin.y) / canvasDimensions.scale;
-
-    ballPosition = { x: fieldX, y: fieldY };
+    const fieldPos = screenToFieldCoords(clientX, clientY);
+    ballPosition = fieldPos;
     drawField();
   };
+
+  // Hover handler to show grab cursor when over ball
+  const handleCanvasHover = (event) => {
+    const state = store.getState();
+
+    // Don't show grab cursor if pan mode is active or dragging
+    if (state.panMode || isDraggingBall || isPanning) return;
+
+    const fieldPos = screenToFieldCoords(event.clientX, event.clientY);
+
+    if (isNearBall(fieldPos.x, fieldPos.y)) {
+      canvas.style.cursor = "grab";
+    } else {
+      canvas.style.cursor = "";
+    }
+  };
+
+  // Add drag event listeners
+  canvas.addEventListener("mousedown", handleBallDragStart);
+  canvas.addEventListener("mousemove", handleBallDragMove);
+  canvas.addEventListener("mousemove", handleCanvasHover);
+  canvas.addEventListener("mouseup", handleBallDragEnd);
+  canvas.addEventListener("mouseleave", handleBallDragEnd);
+
+  canvas.addEventListener("touchstart", handleBallDragStart, {
+    passive: false,
+  });
+  canvas.addEventListener("touchmove", handleBallDragMove, { passive: false });
+  canvas.addEventListener("touchend", handleBallDragEnd);
+  canvas.addEventListener("touchcancel", handleBallDragEnd);
 
   canvas.addEventListener("click", handleCanvasClick);
   canvas.addEventListener("touchend", handleCanvasClick);

@@ -284,7 +284,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       patternCanvas.width = 4;
       patternCanvas.height = 4;
 
-      patternCtx.strokeStyle = "#00aa00";
+      patternCtx.strokeStyle = "#00ff00";
       patternCtx.lineWidth = 1;
 
       patternCtx.beginPath();
@@ -533,8 +533,12 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
       clientY = event.clientY;
     }
 
-    const canvasX = clientX - rect.left;
-    const canvasY = clientY - rect.top;
+    // Account for CSS scaling of canvas
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const canvasX = (clientX - rect.left) * scaleX;
+    const canvasY = (clientY - rect.top) * scaleY;
     const fieldX =
       (canvasX - canvasDimensions.origin.x) / canvasDimensions.scale;
     const fieldY =

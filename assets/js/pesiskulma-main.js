@@ -4,7 +4,11 @@
  */
 
 import { calculateGeometry } from "./modules/geometry.js";
-import { calculateCanvasDimensions, toCanvas } from "./modules/rendering.js";
+import {
+  calculateCanvasDimensions,
+  drawMeasurementLabel,
+  toCanvas,
+} from "./modules/rendering.js";
 import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
 (() => {
@@ -12,6 +16,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const canvas = document.getElementById("fieldCanvas");
   const netDistanceInput = document.getElementById("netDistance");
   const fieldButtons = document.querySelectorAll("[data-field]");
+  const tooltip = document.getElementById("measurementTooltip");
 
   // Pitch plate elements
   const pitchPlateControl = document.getElementById("pitchPlateControl");
@@ -54,6 +59,9 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   // Pitch plate offset (in meters from center)
   let pitchOffset = { x: 0, y: 0 };
 
+  //Measurement hit areas for tooltip interactions
+  let measurementHitAreas = [];
+
   /**
    * Format distance for display
    */
@@ -68,6 +76,9 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   const drawField = () => {
     const state = store.getState();
     if (!state.fieldProfile) return;
+
+    // Clear measurement hit areas
+    measurementHitAreas = [];
 
     const geometry = calculateGeometry(
       state.fieldProfile,
@@ -396,11 +407,22 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
           const midX = (directLineX + verticalLineX) / 2;
           const labelPos = toCanvas({ x: midX, y: netY }, origin, scale);
 
-          ctx.fillStyle = "#16e1ff";
-          ctx.font = "bold 14px sans-serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "bottom";
-          ctx.fillText(formatDistance(distanceM), labelPos.x, labelPos.y - 5);
+          drawMeasurementLabel(ctx, {
+            text: formatDistance(distanceM),
+            x: labelPos.x,
+            y: labelPos.y - 5,
+            textAlign: "center",
+            textBaseline: "bottom",
+            color: "#16e1ff",
+            font: "bold 24px sans-serif",
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            padding: 4,
+            tooltipData: {
+              value: formatDistance(distanceM),
+              description: "Etäisyys keskiviivasta lyöntikohtaan verkossa",
+            },
+            measurementHitAreas,
+          });
         }
       }
 
@@ -427,27 +449,44 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         scale,
       );
 
-      ctx.fillStyle = "#16e1ff";
-      ctx.font = "bold 14px sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
-      ctx.fillText(
-        formatDistance(plateDistanceM),
-        plateLabelPos.x,
-        plateLabelPos.y - 5,
-      );
+      drawMeasurementLabel(ctx, {
+        text: formatDistance(plateDistanceM),
+        x: plateLabelPos.x,
+        y: plateLabelPos.y - 5,
+        textAlign: "center",
+        textBaseline: "bottom",
+        color: "#16e1ff",
+        font: "bold 24px sans-serif",
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        padding: 4,
+        tooltipData: {
+          value: formatDistance(plateDistanceM),
+          description: "Kokonaisetäisyys syöttölautaselta kohteeseen",
+        },
+        measurementHitAreas,
+      });
 
       const backBoundaryY =
         state.fieldProfile.homePlate.centerToHomeLine +
         state.fieldProfile.backBoundary.distanceFromHomeLine;
       const isNearBackBoundary = ballPosition.y >= backBoundaryY * 0.8;
 
-      ctx.textBaseline = isNearBackBoundary ? "top" : "bottom";
-      ctx.fillText(
-        formatDistance(ballSideDistanceM),
-        ballLabelPos.x,
-        isNearBackBoundary ? ballLabelPos.y + 5 : ballLabelPos.y - 5,
-      );
+      drawMeasurementLabel(ctx, {
+        text: formatDistance(ballSideDistanceM),
+        x: ballLabelPos.x,
+        y: isNearBackBoundary ? ballLabelPos.y + 5 : ballLabelPos.y - 5,
+        textAlign: "center",
+        textBaseline: isNearBackBoundary ? "top" : "bottom",
+        color: "#16e1ff",
+        font: "bold 24px sans-serif",
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        padding: 4,
+        tooltipData: {
+          value: formatDistance(ballSideDistanceM),
+          description: "Etäisyys keskiviivasta sivusuunnassa",
+        },
+        measurementHitAreas,
+      });
 
       // Draw ball
       drawBall(ballPosition.x, ballPosition.y, origin, scale);
@@ -604,11 +643,11 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
    * Update pitch offset indicator visibility
    */
   const updatePitchOffsetIndicator = () => {
-    const indicator = document.getElementById('pitchOffsetIndicator');
+    const indicator = document.getElementById("pitchOffsetIndicator");
     if (!indicator) return;
-    
+
     const hasOffset = pitchOffset.x !== 0 || pitchOffset.y !== 0;
-    indicator.classList.toggle('active', hasOffset);
+    indicator.classList.toggle("active", hasOffset);
   };
 
   /**
@@ -1260,9 +1299,85 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     drawField();
   };
 
-  // Hover handler to show grab cursor when over ball
+  // Custom hover handler with zoom/pan support for tooltip
+  const handleTooltipHover = (event) => {
+    const state = store.getState();
+
+    if (!tooltip || measurementHitAreas.length === 0) {
+      if (tooltip) tooltip.style.display = "none";
+      return;
+    }
+
+    const canvasPos = getCanvasMousePosition(event, canvas);
+
+    // Transform canvas position to account for zoom and pan
+    const transformedPos = {
+      x: (canvasPos.x - state.panX) / state.zoomLevel,
+      y: (canvasPos.y - state.panY) / state.zoomLevel,
+    };
+
+    // Find hovered measurement
+    let hoveredArea = null;
+    for (const area of measurementHitAreas) {
+      if (
+        transformedPos.x >= area.x &&
+        transformedPos.x <= area.x + area.width &&
+        transformedPos.y >= area.y &&
+        transformedPos.y <= area.y + area.height
+      ) {
+        hoveredArea = area;
+        break;
+      }
+    }
+
+    if (hoveredArea) {
+      tooltip.innerHTML = `
+        <div class="tooltip-value">${hoveredArea.data.value}</div>
+        <div class="tooltip-description">${hoveredArea.data.description}</div>
+      `;
+      tooltip.style.display = "block";
+
+      // Position tooltip near cursor
+      let tooltipX = event.clientX + 15;
+      let tooltipY = event.clientY + 15;
+
+      requestAnimationFrame(() => {
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        if (tooltipX + tooltipRect.width > viewportWidth - 10) {
+          tooltipX = event.clientX - tooltipRect.width - 15;
+        }
+        if (tooltipY + tooltipRect.height > viewportHeight - 10) {
+          tooltipY = event.clientY - tooltipRect.height - 15;
+        }
+
+        tooltip.style.left = `${tooltipX}px`;
+        tooltip.style.top = `${tooltipY}px`;
+      });
+    } else {
+      tooltip.style.display = "none";
+    }
+  };
+
+  // Helper to get canvas mouse position
+  const getCanvasMousePosition = (event, canvas) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (event.clientX - rect.left) * scaleX,
+      y: (event.clientY - rect.top) * scaleY,
+    };
+  };
+
+  // Hover handler to show grab cursor when over ball and handle tooltips
   const handleCanvasHover = (event) => {
     const state = store.getState();
+
+    // Handle tooltips
+    handleTooltipHover(event);
 
     // Don't show grab cursor if pan mode is active or dragging
     if (state.panMode || isDraggingBall || isPanning) return;

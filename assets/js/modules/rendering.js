@@ -375,3 +375,98 @@ export const calculateCanvasDimensions = (
     origin,
   };
 };
+
+/**
+ * Draw measurement label with tooltip support
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {Object} params - Parameters
+ * @param {string} params.text - Text to display
+ * @param {number} params.x - X position (canvas coordinates)
+ * @param {number} params.y - Y position (canvas coordinates)
+ * @param {string} params.textAlign - Text alignment ('left'|'center'|'right')
+ * @param {string} params.textBaseline - Text baseline ('top'|'bottom'|'middle')
+ * @param {string} params.color - Text color
+ * @param {string} params.font - Font style
+ * @param {string} params.backgroundColor - Background color
+ * @param {number} params.padding - Background padding
+ * @param {Object|null} params.tooltipData - Tooltip data {title, value, description}
+ * @param {Array} params.measurementHitAreas - Array to store hit areas
+ * @returns {void}
+ */
+export const drawMeasurementLabel = (
+  ctx,
+  {
+    text,
+    x,
+    y,
+    textAlign = "center",
+    textBaseline = "bottom",
+    color = "#16e1ff",
+    font = "bold 14px sans-serif",
+    backgroundColor = "rgba(0, 0, 0, 0.6)",
+    padding = 4,
+    tooltipData = null,
+    measurementHitAreas = [],
+  },
+) => {
+  ctx.save();
+
+  ctx.font = font;
+  ctx.textAlign = textAlign;
+  ctx.textBaseline = textBaseline;
+
+  // Measure text
+  const metrics = ctx.measureText(text);
+  const textWidth = metrics.width;
+  const ascent = metrics.actualBoundingBoxAscent || 14;
+  const descent = metrics.actualBoundingBoxDescent || 4;
+  const textHeight = ascent + descent;
+
+  // Calculate background box position based on alignment and baseline
+  let boxX = x;
+  if (textAlign === "center") {
+    boxX = x - textWidth / 2;
+  } else if (textAlign === "right") {
+    boxX = x - textWidth;
+  }
+
+  // For textBaseline, we need to account for where the text actually renders
+  let boxY = y;
+  if (textBaseline === "bottom") {
+    // Text baseline is at y, text extends upward by ascent and downward by descent
+    boxY = y - ascent;
+  } else if (textBaseline === "middle") {
+    boxY = y - textHeight / 2;
+  } else if (textBaseline === "top") {
+    // Text top is at y, text extends downward
+    boxY = y;
+  }
+
+  // Draw background
+  if (backgroundColor) {
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(
+      boxX - padding,
+      boxY - padding,
+      textWidth + padding * 2,
+      textHeight + padding * 2,
+    );
+  }
+
+  // Draw text
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+
+  // Store hit area if tooltip is provided
+  if (tooltipData && measurementHitAreas) {
+    measurementHitAreas.push({
+      x: boxX - padding,
+      y: boxY - padding,
+      width: textWidth + padding * 2,
+      height: textHeight + padding * 2,
+      data: tooltipData,
+    });
+  }
+
+  ctx.restore();
+};

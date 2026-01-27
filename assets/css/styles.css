@@ -1897,6 +1897,12 @@ footer p {
 
 /* Desktop: show hero-landing, hide hero-grid */
 @media (min-width: 769px) {
+  /* Remove body padding for fullscreen landing page */
+  body:has(.hero-landing) {
+    padding: 0;
+    overflow: hidden;
+  }
+
   .hero-landing {
     display: block;
     position: relative;

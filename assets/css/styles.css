@@ -1885,3 +1885,105 @@ footer p {
     padding: 16px;
   }
 }
+
+/* ====================================
+   Landing Page Hero
+   ==================================== */
+
+/* Default: hide desktop hero, show mobile grid */
+.hero-landing {
+  display: none;
+}
+
+/* Desktop: show hero-landing, hide hero-grid */
+@media (min-width: 769px) {
+  .hero-landing {
+    display: block;
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    display: none;
+  }
+
+  /* Background image */
+  .hero-landing__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  /* Stage container */
+  .hero-landing__stage {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+  }
+
+  /* Center wrapper for logo */
+  .hero-landing__center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  /* Logo - large */
+  .hero-landing__logo {
+    width: min(80vw, 1600px);
+    filter: drop-shadow(0 30px 90px rgba(0, 0, 0, 0.8));
+  }
+
+  /* Mobile phones */
+  .hero-landing__mobile {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(22vw, 800px);
+    cursor: pointer;
+    transition:
+      transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      filter 260ms;
+    filter: drop-shadow(0 40px 80px rgba(0, 0, 0, 0.6));
+    z-index: 20;
+  }
+
+  /* Position left phone */
+  .hero-landing__mobile--left {
+    --x: -32vw;
+    --rotate: -6deg;
+    transform: translate(-50%, -50%) translateX(-32vw) rotate(-6deg);
+  }
+
+  /* Position right phone */
+  .hero-landing__mobile--right {
+    --x: 32vw;
+    --rotate: 6deg;
+    transform: translate(-50%, -50%) translateX(32vw) rotate(6deg);
+  }
+
+  /* Hover effect - red glow */
+  .hero-landing__mobile:hover {
+    filter: drop-shadow(0 0 40px rgba(223, 29, 4, 1))
+      drop-shadow(0 0 80px rgba(223, 29, 4, 0.8))
+      drop-shadow(0 60px 120px rgba(0, 0, 0, 0.9)) brightness(1.15);
+    transform: translate(-50%, -50%) translateX(var(--x, 0))
+      rotate(var(--rotate, 0deg)) scale(1.08);
+    z-index: 25;
+  }
+
+  /* Focus styles for accessibility */
+  .hero-landing__mobile:focus {
+    outline: 3px solid rgba(219, 34, 9, 0.8);
+    outline-offset: 8px;
+  }
+}

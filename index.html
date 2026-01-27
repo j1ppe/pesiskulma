@@ -27,6 +27,48 @@
     <script src="assets/js/footer.js" defer></script>
   </head>
   <body>
+    <!-- Desktop hero (min-width: 769px) -->
+    <main class="hero-landing" role="main">
+      <img
+        class="hero-landing__bg"
+        src="assets/images/bg7.png"
+        alt=""
+        aria-hidden="true"
+      />
+
+      <div class="hero-landing__stage">
+        <!-- Vasen puhelin -->
+        <img
+          class="hero-landing__mobile hero-landing__mobile--left"
+          src="assets/images/mobile1.png"
+          alt="Kenttäasetukset"
+          data-page="PesisKulma.html"
+          tabindex="0"
+          role="button"
+        />
+
+        <!-- Keskellä logo -->
+        <div class="hero-landing__center">
+          <img
+            class="hero-landing__logo"
+            src="assets/images/pesiskulma-logo.png"
+            alt="PesisKulma"
+          />
+        </div>
+
+        <!-- Oikea puhelin -->
+        <img
+          class="hero-landing__mobile hero-landing__mobile--right"
+          src="assets/images/mobile2.png"
+          alt="Interaktiivinen kenttätyökalu"
+          data-page="PesisKentta.html"
+          tabindex="0"
+          role="button"
+        />
+      </div>
+    </main>
+
+    <!-- Mobile hero (max-width: 768px) -->
     <main class="hero-grid">
       <article class="hero-card">
         <h2 class="hero-title">PesisKulma</h2>
@@ -54,5 +96,6 @@
     </main>
 
     <footer class="site-footer" data-footer></footer>
+    <script src="assets/js/landing.js"></script>
   </body>
 </html>

@@ -1965,16 +1965,16 @@ footer p {
 
   /* Position left phone */
   .hero-landing__mobile--left {
-    --x: -24vw;
+    --x: -26vw;
     --rotate: -6deg;
-    transform: translate(-50%, -50%) translateX(-24vw) rotate(-6deg);
+    transform: translate(-50%, -50%) translateX(-26vw) rotate(-6deg);
   }
 
   /* Position right phone */
   .hero-landing__mobile--right {
-    --x: 24vw;
+    --x: 26vw;
     --rotate: 6deg;
-    transform: translate(-50%, -50%) translateX(24vw) rotate(6deg);
+    transform: translate(-50%, -50%) translateX(26vw) rotate(6deg);
   }
 
   /* Hover effect - red glow */

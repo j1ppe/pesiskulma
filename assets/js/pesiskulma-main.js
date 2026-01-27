@@ -419,7 +419,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
             padding: 4,
             tooltipData: {
               value: formatDistance(distanceM),
-              description: "Etäisyys keskiviivasta lyöntikohtaan verkossa",
+              description: "Etäisyys keskiviivasta osumakohtaan verkossa",
             },
             measurementHitAreas,
           });

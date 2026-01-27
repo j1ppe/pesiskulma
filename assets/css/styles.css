@@ -833,8 +833,8 @@ canvas {
   position: absolute;
   top: 20px;
   left: calc(
-    50% + 400px + 20px
-  ); /* Canvas center (50%) + half canvas width (400px for 800px desktop canvas) + gap (20px) */
+    50% + 250px + 20px
+  ); /* Canvas center (50%) + half canvas width (250px for 500px desktop canvas) + gap (20px) */
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1048,8 +1048,8 @@ canvas {
   position: absolute;
   bottom: 20px;
   right: calc(
-    50% + 400px + 20px
-  ); /* Same gap from canvas as zoom controls (400px for 800px desktop canvas) */
+    50% + 250px + 20px
+  ); /* Same gap from canvas as zoom controls (250px for 500px desktop canvas) */
   display: inline-flex;
   align-items: center;
   gap: 8px;

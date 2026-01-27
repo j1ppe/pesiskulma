@@ -337,8 +337,8 @@ export const calculateCanvasDimensions = (
 ) => {
   // Responsive canvas dimensions - larger on desktop, compact on mobile
   const isMobile = viewportWidth <= 768;
-  const CANVAS_WIDTH = isMobile ? 550 : 800;
-  const CANVAS_HEIGHT = isMobile ? 1000 : 1300;
+  const CANVAS_WIDTH = isMobile ? 550 : 500;
+  const CANVAS_HEIGHT = isMobile ? 1000 : Math.min(800, viewportHeight - 50);
 
   // Calculate field dimensions from profile
   // Women's field is narrower than men's field

@@ -1905,7 +1905,9 @@ footer p {
 
   .hero-landing {
     display: block;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
@@ -1927,9 +1929,9 @@ footer p {
 
   /* Stage container */
   .hero-landing__stage {
-    position: relative;
+    position: absolute;
+    inset: 0;
     z-index: 2;
-    height: 100%;
   }
 
   /* Center wrapper for logo */

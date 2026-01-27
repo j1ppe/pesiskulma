@@ -1946,8 +1946,6 @@ footer p {
 
   /* Logo - large */
   .hero-landing__logo {
-    width: 60vw;
-    max-width: 1200px;
     filter: drop-shadow(0 30px 90px rgba(0, 0, 0, 0.8));
   }
 
@@ -1967,16 +1965,16 @@ footer p {
 
   /* Position left phone */
   .hero-landing__mobile--left {
-    --x: -18vw;
+    --x: -24vw;
     --rotate: -6deg;
-    transform: translate(-50%, -50%) translateX(-18vw) rotate(-6deg);
+    transform: translate(-50%, -50%) translateX(-24vw) rotate(-6deg);
   }
 
   /* Position right phone */
   .hero-landing__mobile--right {
-    --x: 18vw;
+    --x: 24vw;
     --rotate: 6deg;
-    transform: translate(-50%, -50%) translateX(18vw) rotate(6deg);
+    transform: translate(-50%, -50%) translateX(24vw) rotate(6deg);
   }
 
   /* Hover effect - red glow */

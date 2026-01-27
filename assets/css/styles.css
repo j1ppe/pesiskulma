@@ -1946,7 +1946,8 @@ footer p {
 
   /* Logo - large */
   .hero-landing__logo {
-    width: min(60vw, 900px);
+    width: 60vw;
+    max-width: 1200px;
     filter: drop-shadow(0 30px 90px rgba(0, 0, 0, 0.8));
   }
 

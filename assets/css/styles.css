@@ -2173,10 +2173,9 @@ body:not(.page--field) .language-selector {
     z-index: 25;
   }
 
-  /* Focus styles for accessibility */
+  /* Remove focus outline */
   .hero-landing__mobile:focus {
-    outline: 3px solid rgba(219, 34, 9, 0.8);
-    outline-offset: 8px;
+    outline: none;
   }
 }
 

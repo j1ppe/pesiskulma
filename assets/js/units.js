@@ -50,7 +50,10 @@ class UnitSystem {
     if (toggleButton) {
       const iconSpan = toggleButton.querySelector(".unit-icon");
       if (iconSpan) {
-        iconSpan.textContent = this.currentUnit === "metric" ? "m" : "ft";
+        // Use ruler icon + unit abbreviation, matching language toggle style
+        const icon = '<span style="font-size: 18px;">📐</span>';
+        const unit = this.currentUnit === "metric" ? "m" : "ft";
+        iconSpan.innerHTML = `${icon} ${unit}`;
       }
     }
   }

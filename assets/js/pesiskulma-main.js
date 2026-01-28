@@ -15,6 +15,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   // DOM elements
   const canvas = document.getElementById("fieldCanvas");
   const netDistanceInput = document.getElementById("netDistance");
+  const netDistanceUnit = document.querySelector(".net-distance-unit");
   const fieldButtons = document.querySelectorAll("[data-field]");
   const tooltip = document.getElementById("measurementTooltip");
 
@@ -1421,8 +1422,37 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   // Listen for unit system changes and redraw
   window.addEventListener("unitChanged", () => {
     console.log("unitChanged event received in pesiskulma-main, redrawing...");
+    updateNetDistanceUnit();
     drawField();
   });
+
+  // Listen for language changes and update unit label
+  window.addEventListener("languageChanged", () => {
+    updateNetDistanceUnit();
+  });
+
+  /**
+   * Update net distance unit label based on current unit system
+   */
+  function updateNetDistanceUnit() {
+    if (netDistanceUnit && window.unitSystem) {
+      const isImperial = window.unitSystem.isImperial();
+      const unitKey = isImperial ? "in" : "cm";
+
+      // Try to get translated unit, fall back to unit key
+      let unitText = unitKey;
+      if (
+        window.i18n &&
+        window.i18n.translations &&
+        window.i18n.translations.common &&
+        window.i18n.translations.common.units
+      ) {
+        unitText = window.i18n.translations.common.units[unitKey] || unitKey;
+      }
+
+      netDistanceUnit.textContent = unitText;
+    }
+  }
 
   // Initialize with women's field
   store.setFieldProfile(fieldProfileWomen);
@@ -1433,6 +1463,9 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
   // Initialize pitch offset indicator
   updatePitchOffsetIndicator();
+
+  // Initialize net distance unit
+  updateNetDistanceUnit();
 
   resizeCanvas();
 })();

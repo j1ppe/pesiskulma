@@ -25,6 +25,13 @@ const i18n = {
 
     // Setup language selector event listeners
     this.setupLanguageSelector();
+
+    // Dispatch languageChanged event after initial load
+    window.dispatchEvent(
+      new CustomEvent("languageChanged", {
+        detail: { language: this.currentLanguage },
+      }),
+    );
   },
 
   /**

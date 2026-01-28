@@ -130,4 +130,4 @@ PesisKulma is a browser-based toolkit for Finnish baseball hitting training and 
 
 ---
 
-Lisenssi: [MIT](LICENSE)
+License: [MIT](LICENSE)

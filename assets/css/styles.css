@@ -428,9 +428,31 @@ canvas {
   }
 }
 
+.hero-logo-mobile {
+  display: none;
+  text-align: center;
+  margin-top: 80px;
+}
+
+.hero-logo-mobile img {
+  max-width: 200px;
+  height: auto;
+  filter: drop-shadow(0 4px 12px rgba(233, 69, 96, 0.4));
+}
+
+@media (max-width: 768px) {
+  .hero-logo-mobile {
+    display: block;
+  }
+
+  .hero-grid {
+    margin-top: 0;
+  }
+}
+
 .hero-grid {
   max-width: 960px;
-  margin: 100px auto 40px;
+  margin: 0 auto 80px;
   padding: 0 10px;
   display: grid;
   gap: 12px;

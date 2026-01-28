@@ -64,7 +64,7 @@
     },
     "modal": {
       "offsetTitle": "Syötä siirto metreissä",
-      "offsetDescription": "Anna etäisyys kolmospesan keskustasta kolmospesan viivaa pitkin",
+      "offsetDescription": "Anna etäisyys kolmospesän keskustasta kolmospesän viivaa pitkin",
       "offsetPlaceholder": "esim. 2.50",
       "confirmTitle": "Vahvistus"
     }

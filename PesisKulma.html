@@ -17,7 +17,9 @@
   <body class="page--field">
     <!-- Language Selector -->
     <div class="language-selector">
-      <button class="language-toggle" id="languageToggle">🌐 🇫🇮</button>
+      <button class="language-toggle" id="languageToggle">
+        <span class="globe-icon">🌐</span><span class="lang-code">FI</span>
+      </button>
       <div class="language-dropdown" id="languageDropdown">
         <button class="language-button active" data-lang="fi">
           <span class="language-flag"
@@ -29,24 +31,60 @@
           /></span>
           <span class="language-name">Suomi</span>
         </button>
+        <button class="language-button" data-lang="en">
+          <span class="language-flag"
+            ><img
+              src="https://flagcdn.com/w20/gb.png"
+              alt="GB"
+              width="20"
+              height="15"
+          /></span>
+          <span class="language-name">English</span>
+        </button>
+        <button class="language-button" data-lang="sv">
+          <span class="language-flag"
+            ><img
+              src="https://flagcdn.com/w20/se.png"
+              alt="SE"
+              width="20"
+              height="15"
+          /></span>
+          <span class="language-name">Svenska</span>
+        </button>
       </div>
     </div>
 
     <section class="control-dock">
-      <p class="control-dock__eyebrow">Kenttävalinta</p>
+      <p class="control-dock__eyebrow" data-i18n="pesiskulma.fieldSelection">
+        Kenttävalinta
+      </p>
       <div class="control-dock__grid">
         <div class="control-card field-selector-container">
           <div class="field-selector">
-            <button class="field-option active" data-field="women">
+            <button
+              class="field-option active"
+              data-field="women"
+              data-i18n="common.women"
+            >
               Naiset
             </button>
-            <button class="field-option" data-field="men">Miehet</button>
+            <button
+              class="field-option"
+              data-field="men"
+              data-i18n="common.men"
+            >
+              Miehet
+            </button>
           </div>
         </div>
 
         <div class="control-card net-distance-container">
           <div class="net-distance-fields">
-            <label class="net-distance-label" for="netDistance">
+            <label
+              class="net-distance-label"
+              for="netDistance"
+              data-i18n="pesiskulma.netDistanceLabel"
+            >
               Lyöntiverkon etäisyys syöttölautasen etureunasta
             </label>
             <div class="net-distance-input-shell">
@@ -54,11 +92,16 @@
                 type="text"
                 id="netDistance"
                 class="net-distance-input"
-                placeholder="esim. 500"
+                data-i18n-placeholder="pesiskulma.netDistancePlaceholder"
                 inputmode="decimal"
                 pattern="[0-9.]*"
               />
-              <span class="net-distance-unit" aria-hidden="true">cm</span>
+              <span
+                class="net-distance-unit"
+                aria-hidden="true"
+                data-i18n="pesiskulma.netDistanceUnit"
+                >cm</span
+              >
             </div>
           </div>
         </div>
@@ -76,21 +119,21 @@
         <button
           class="zoom-btn zoom-out"
           id="zoomOut"
-          title="Loitonna"
-          aria-label="Loitonna"
+          data-i18n-title="controls.zoomOut"
+          data-i18n-aria="controls.zoomOut"
         ></button>
         <span class="zoom-level" id="zoomLevel">100%</span>
         <button
           class="zoom-btn zoom-reset"
           id="zoomReset"
-          title="Palauta näkymä"
-          aria-label="Palauta näkymä"
+          data-i18n-title="controls.zoomReset"
+          data-i18n-aria="controls.zoomReset"
         ></button>
         <button
           class="zoom-btn zoom-in"
           id="zoomIn"
-          title="Lähennä"
-          aria-label="Lähennä"
+          data-i18n-title="controls.zoomIn"
+          data-i18n-aria="controls.zoomIn"
         ></button>
       </div>
 
@@ -98,8 +141,8 @@
       <button
         class="pan-mode-toggle"
         id="panModeToggle"
-        title="Pan-tila"
-        aria-label="Aktivoi pan-tila kentän siirtämiseen"
+        data-i18n-title="controls.panMode"
+        data-i18n-aria="controls.panModeActivate"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -117,14 +160,14 @@
             d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"
           ></path>
         </svg>
-        <span>Pan</span>
+        <span data-i18n="controls.panMode">Pan</span>
       </button>
 
       <!-- Mobile: Floating Button -->
       <button
         class="pitch-plate-toggle"
         id="pitchPlateToggle"
-        title="Avaa syöttölautasen asetukset"
+        data-i18n-title="pesiskulma.pitchPlateOpen"
       >
         <svg
           width="24"
@@ -144,11 +187,11 @@
     <!-- Pitch Plate Control (Desktop) -->
     <div class="pitch-plate-control" id="pitchPlateControl">
       <div class="pitch-plate-header">
-        <h3>Syöttölautanen</h3>
+        <h3 data-i18n="pesiskulma.pitchPlateTitle">Syöttölautanen</h3>
         <button
           class="pitch-plate-reset"
           id="pitchPlateReset"
-          title="Palauta keskelle"
+          data-i18n-title="pesiskulma.pitchPlateReset"
         >
           <svg
             width="16"
@@ -160,11 +203,11 @@
           >
             <path d="M14 8A6 6 0 1 1 8 2M8 2l3 3M8 2l3-3" />
           </svg>
-          Reset
+          <span data-i18n="common.reset">Reset</span>
         </button>
       </div>
       <canvas id="pitchPlateCanvas" width="200" height="200"></canvas>
-      <p class="pitch-plate-hint">
+      <p class="pitch-plate-hint" data-i18n="pesiskulma.pitchPlateHint">
         Siirrä palloa asettaaksesi lyönnin lähtöpiste
       </p>
     </div>
@@ -173,7 +216,7 @@
     <div class="pitch-plate-modal" id="pitchPlateModal">
       <div class="pitch-plate-modal-content">
         <div class="pitch-plate-modal-header">
-          <h3>Syöttölautanen</h3>
+          <h3 data-i18n="pesiskulma.pitchPlateTitle">Syöttölautanen</h3>
           <button class="pitch-plate-modal-close" id="pitchPlateModalClose">
             <svg
               width="24"
@@ -188,10 +231,14 @@
           </button>
         </div>
         <canvas id="pitchPlateCanvasMobile" width="280" height="280"></canvas>
-        <p class="pitch-plate-hint">
+        <p class="pitch-plate-hint" data-i18n="pesiskulma.pitchPlateHint">
           Siirrä palloa asettaaksesi lyönnin lähtöpiste
         </p>
-        <button class="pitch-plate-reset" id="pitchPlateResetMobile">
+        <button
+          class="pitch-plate-reset"
+          id="pitchPlateResetMobile"
+          data-i18n="pesiskulma.pitchPlateReset"
+        >
           <svg
             width="16"
             height="16"

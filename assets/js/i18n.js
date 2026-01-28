@@ -115,11 +115,18 @@ const i18n = {
     const selector = document.querySelector(".language-selector");
     if (!selector) return;
 
+    const toggle = document.getElementById("languageToggle");
+
     // Update active language
     selector.querySelectorAll("[data-lang]").forEach((button) => {
       const lang = button.getAttribute("data-lang");
       if (lang === this.currentLanguage) {
         button.classList.add("active");
+
+        // Update toggle to show current language code
+        if (toggle) {
+          toggle.innerHTML = `<span class="globe-icon">🌐</span><span class="lang-code">${lang.toUpperCase()}</span>`;
+        }
       } else {
         button.classList.remove("active");
       }

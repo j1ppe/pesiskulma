@@ -1,0 +1,83 @@
+{
+  "common": {
+    "appName": "PesisKulma",
+    "women": "Women",
+    "men": "Men",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "reset": "Reset",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "navigation": {
+    "fieldSettings": "Field Settings",
+    "interactiveField": "Interactive Field Tool"
+  },
+  "footer": {
+    "designedBy": "PesisKulma - Designed & Built by JiPPE"
+  },
+  "landing": {
+    "title": "PesisKulma",
+    "description": "A tool for batting practice: plan your hits to the net or tarpaulin, visualise distances and angles directly in your browser.",
+    "openFieldTool": "Open Field Tool",
+    "fieldMapTitle": "Field Map",
+    "fieldMapDescription": "Compare different field profiles and examine their measurements. Draw your own measuring lines and measure running or throwing distances directly on the pitch. A precise tool for field analysis.",
+    "openFieldMap": "Open Field Map"
+  },
+  "pesiskulma": {
+    "title": "PesisKulma",
+    "fieldSelection": "Field Selection",
+    "netDistanceLabel": "Net distance from front edge of pitcher's plate",
+    "netDistancePlaceholder": "e.g. 500",
+    "netDistanceUnit": "cm",
+    "pitchPlateTitle": "Pitcher's Plate",
+    "pitchPlateHint": "Move the ball to set the batting start point",
+    "pitchPlateReset": "Reset to centre",
+    "pitchPlateOpen": "Open pitcher's plate settings",
+    "measurements": {
+      "lateralDistance": "Distance from centre line to impact point on net",
+      "totalDistance": "Total distance from pitcher's plate to target",
+      "lateralFromCenter": "Lateral distance from centre line"
+    }
+  },
+  "pesiskentta": {
+    "title": "PesisKenttä",
+    "subtitle": "Interactive Field Tool",
+    "eyebrow": "Field Map",
+    "moreInfo": "More Information",
+    "description": "Compare different field profiles and examine their measurements. Draw your own measuring lines and measure running or throwing distances directly on the pitch. A precise tool for field analysis.",
+    "resetEdits": "Reset to original values",
+    "clearChanges": "Clear changes",
+    "customMeasure": "Custom Measure",
+    "customMeasureActivate": "Activate custom measure function",
+    "debugSnap": "🎯 Debug Snap",
+    "debugSnapShow": "Show snap points for debugging",
+    "dimensions": {
+      "title": "Key Measurements",
+      "first": "First base",
+      "second": "Second base",
+      "third": "Third base",
+      "diagonal": "Home path",
+      "back": "Field length",
+      "width": "Field width"
+    },
+    "modal": {
+      "offsetTitle": "Enter offset in metres",
+      "offsetDescription": "Specify distance from third base centre along the third base line",
+      "offsetPlaceholder": "e.g. 2.50",
+      "confirmTitle": "Confirmation"
+    }
+  },
+  "controls": {
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "zoomReset": "Reset View",
+    "panMode": "Pan",
+    "panModeActivate": "Activate pan mode to move the field"
+  },
+  "meta": {
+    "ogTitle": "Pesiskulma",
+    "ogDescription": "A training tool for Finnish baseball (pesäpallo)."
+  }
+}

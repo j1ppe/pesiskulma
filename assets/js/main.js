@@ -1137,6 +1137,9 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
     updateZoomControlsPosition();
   };
 
+  // Expose drawField for unit system changes
+  window.drawFieldMain = drawField;
+
   // Event listeners
   window.addEventListener("resize", resizeCanvas);
 
@@ -2082,6 +2085,14 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   };
 
   canvas.addEventListener("click", handleCanvasTap);
+
+  // Listen for unit system changes and redraw
+  window.addEventListener("unitChanged", () => {
+    console.log("unitChanged event received in main.js, triggering redraw...");
+    if (window.drawFieldMain) {
+      window.drawFieldMain();
+    }
+  });
 
   // Add touch support for handle tapping on mobile
   let lastTouchEnd = 0;

@@ -10,6 +10,7 @@
       href="assets/images/pesiskulma-logo.png"
     />
     <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/units.js"></script>
     <script src="assets/js/i18n.js"></script>
     <script src="assets/js/pesiskulma-main.js" type="module"></script>
     <script src="assets/js/footer.js" defer></script>
@@ -17,6 +18,13 @@
   <body class="page--field">
     <!-- Language Selector -->
     <div class="language-selector">
+      <button
+        class="unit-toggle"
+        id="unitToggle"
+        title="Toggle measurement units"
+      >
+        <span class="unit-icon">m</span>
+      </button>
       <button class="language-toggle" id="languageToggle">
         <span class="globe-icon">🌐</span><span class="lang-code">FI</span>
       </button>

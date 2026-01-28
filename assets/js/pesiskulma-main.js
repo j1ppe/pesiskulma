@@ -67,7 +67,17 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
    */
   const formatDistance = (distanceM) => {
     const distanceCm = Math.round(distanceM * 100);
-    return distanceCm > 99 ? distanceM.toFixed(2) + " m" : distanceCm + " cm";
+
+    if (window.unitSystem.isMetric()) {
+      return distanceCm > 99 ? distanceM.toFixed(2) + " m" : distanceCm + " cm";
+    } else {
+      // Imperial: use feet for distances > 1m, inches for smaller
+      if (distanceCm > 100) {
+        return window.unitSystem.formatMeters(distanceM);
+      } else {
+        return window.unitSystem.formatCm(distanceCm);
+      }
+    }
   };
 
   /**
@@ -1407,6 +1417,12 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
 
   canvas.addEventListener("click", handleCanvasClick);
   canvas.addEventListener("touchend", handleCanvasClick);
+
+  // Listen for unit system changes and redraw
+  window.addEventListener("unitChanged", () => {
+    console.log("unitChanged event received in pesiskulma-main, redrawing...");
+    drawField();
+  });
 
   // Initialize with women's field
   store.setFieldProfile(fieldProfileWomen);

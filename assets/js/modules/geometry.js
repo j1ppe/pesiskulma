@@ -172,9 +172,12 @@ export const isPointInRect = (px, py, x, y, width, height) => {
  * @returns {string} Formatted string
  */
 export const formatMeters = (value) => {
-  // Round to 1 decimal for display
+  if (window.unitSystem && window.unitSystem.isImperial()) {
+    return window.unitSystem.formatMeters(value);
+  }
+
+  // Metric formatting (default)
   const rounded = Math.round(value * 10) / 10;
-  // Show without decimals if it's a whole number
   return Number.isInteger(rounded) ? `${rounded} m` : `${rounded.toFixed(1)} m`;
 };
 

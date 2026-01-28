@@ -8,7 +8,15 @@
     "close": "Sulje",
     "reset": "Reset",
     "yes": "Kyllä",
-    "no": "Ei"
+    "no": "Ei",
+    "units": {
+      "metric": "Metrinen",
+      "imperial": "Brittiläinen",
+      "cm": "cm",
+      "m": "m",
+      "ft": "ft",
+      "in": "tuumaa"
+    }
   },
   "navigation": {
     "fieldSettings": "Kenttäasetukset",

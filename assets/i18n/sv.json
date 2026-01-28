@@ -8,7 +8,15 @@
     "close": "Stäng",
     "reset": "Återställ",
     "yes": "Ja",
-    "no": "Nej"
+    "no": "Nej",
+    "units": {
+      "metric": "Metriskt",
+      "imperial": "Brittiskt",
+      "cm": "cm",
+      "m": "m",
+      "ft": "ft",
+      "in": "tum"
+    }
   },
   "navigation": {
     "fieldSettings": "Planinställningar",

@@ -8,7 +8,15 @@
     "close": "Close",
     "reset": "Reset",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "units": {
+      "metric": "Metric",
+      "imperial": "Imperial",
+      "cm": "cm",
+      "m": "m",
+      "ft": "ft",
+      "in": "inches"
+    }
   },
   "navigation": {
     "fieldSettings": "Field Settings",

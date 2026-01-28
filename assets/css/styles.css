@@ -430,12 +430,13 @@ canvas {
 
 .hero-grid {
   max-width: 960px;
-  margin: 60px auto 100px;
+  margin: 100px auto 40px;
   padding: 0 10px;
   display: grid;
-  gap: 28px;
+  gap: 12px;
   box-sizing: border-box;
   width: 100%;
+  min-height: 60vh;
 }
 
 @media (min-width: 760px) {
@@ -445,37 +446,53 @@ canvas {
 }
 
 .hero-card {
-  padding: 32px 28px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  padding: 16px 14px;
+  background: rgba(7, 10, 27, 0.6);
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 60px rgba(233, 69, 96, 0.2);
-  backdrop-filter: blur(12px);
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 80px rgba(233, 69, 96, 0.25);
+  backdrop-filter: blur(16px);
   position: relative;
   z-index: 1;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.hero-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.6),
+    0 0 100px rgba(233, 69, 96, 0.4);
 }
 
 .hero-card--outline {
-  background: transparent;
+  background: rgba(7, 10, 27, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.25),
-    0 0 80px rgba(22, 225, 255, 0.2);
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 80px rgba(22, 225, 255, 0.3);
+}
+
+.hero-card--outline:hover {
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.6),
+    0 0 100px rgba(22, 225, 255, 0.5);
 }
 
 .hero-title {
-  margin: 0 0 14px;
-  font-size: 3.2rem;
+  margin: 0 0 6px;
+  font-size: 2.8rem;
   letter-spacing: 0.03em;
 }
 
 .hero-description {
-  margin: 0 0 26px;
+  margin: 0 0 10px;
   color: rgba(255, 255, 255, 0.85);
-  line-height: 1.7;
-  font-size: 1.2rem;
+  line-height: 1.5;
+  font-size: 1.1rem;
 }
 
 .hero-button {
@@ -483,11 +500,11 @@ canvas {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 14px 34px;
+  padding: 12px 28px;
   border-radius: 8px;
   border: none;
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2079,6 +2096,30 @@ body:not(.page--field) .language-selector {
 /* Default: hide desktop hero, show mobile grid */
 .hero-landing {
   display: none;
+}
+
+/* Mobile: hide hero-landing, show hero-grid with language selector */
+@media (max-width: 768px) {
+  body:has(.hero-grid) {
+    background-image: url("../images/background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+
+  .hero-landing {
+    display: none;
+  }
+
+  .language-selector {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    padding: 0;
+    background: transparent !important;
+  }
 }
 
 /* Desktop: show hero-landing, hide hero-grid */

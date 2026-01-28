@@ -1887,6 +1887,117 @@ footer p {
 }
 
 /* ====================================
+   Language Selector
+   ==================================== */
+
+.language-selector {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.language-toggle {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.language-toggle:hover {
+  transform: scale(1.15);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+.language-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: rgba(7, 10, 27, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  min-width: 150px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.language-dropdown.active {
+  display: flex;
+}
+
+.language-button {
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-family: var(--font-body);
+}
+
+.language-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.language-button.active {
+  background: rgba(233, 69, 96, 0.2);
+  color: #fff;
+  border: 1px solid rgba(233, 69, 96, 0.5);
+}
+
+.language-flag {
+  font-size: 20px;
+  font-family:
+    "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", sans-serif;
+  line-height: 1;
+}
+
+.language-name {
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .language-selector {
+    top: 10px;
+    right: 10px;
+  }
+
+  .language-toggle {
+    padding: 6px 10px;
+    font-size: 20px;
+  }
+
+  .language-dropdown {
+    min-width: 120px;
+  }
+
+  .language-button {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .language-flag {
+    font-size: 18px;
+  }
+}
+
+/* ====================================
    Landing Page Hero
    ==================================== */
 
@@ -1991,5 +2102,85 @@ footer p {
   .hero-landing__mobile:focus {
     outline: 3px solid rgba(219, 34, 9, 0.8);
     outline-offset: 8px;
+  }
+}
+
+/* ====================================
+   Language Selector
+   ==================================== */
+
+.language-selector {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.language-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.language-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.language-button.active {
+  background: rgba(22, 225, 255, 0.15);
+  border-color: rgba(22, 225, 255, 0.5);
+  color: var(--color-cyan);
+}
+
+.language-flag {
+  width: 20px;
+  height: 15px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.language-name {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 768px) {
+  .language-selector {
+    top: 10px;
+    right: 10px;
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .language-button {
+    padding: 5px 8px;
+    gap: 4px;
+  }
+
+  .language-flag {
+    width: 18px;
+    height: 13px;
+  }
+
+  .language-name {
+    display: none;
   }
 }

@@ -9,6 +9,8 @@
       type="image/png"
       href="assets/images/pesiskulma-logo.png"
     />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/i18n.js"></script>
     <style>
       * {
         box-sizing: border-box;
@@ -56,6 +58,23 @@
     </style>
   </head>
   <body>
+    <!-- Language Selector -->
+    <div class="language-selector">
+      <button class="language-toggle" id="languageToggle">🌐 🇫🇮</button>
+      <div class="language-dropdown" id="languageDropdown">
+        <button class="language-button active" data-lang="fi">
+          <span class="language-flag"
+            ><img
+              src="https://flagcdn.com/w20/fi.png"
+              alt="FI"
+              width="20"
+              height="15"
+          /></span>
+          <span class="language-name">Suomi</span>
+        </button>
+      </div>
+    </div>
+
     <h1>Kenttävertailu</h1>
     <div class="legend">
       <span

@@ -10,10 +10,28 @@
       href="assets/images/pesiskulma-logo.png"
     />
     <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/i18n.js"></script>
     <script src="assets/js/pesiskulma-main.js" type="module"></script>
     <script src="assets/js/footer.js" defer></script>
   </head>
   <body class="page--field">
+    <!-- Language Selector -->
+    <div class="language-selector">
+      <button class="language-toggle" id="languageToggle">🌐 🇫🇮</button>
+      <div class="language-dropdown" id="languageDropdown">
+        <button class="language-button active" data-lang="fi">
+          <span class="language-flag"
+            ><img
+              src="https://flagcdn.com/w20/fi.png"
+              alt="FI"
+              width="20"
+              height="15"
+          /></span>
+          <span class="language-name">Suomi</span>
+        </button>
+      </div>
+    </div>
+
     <section class="control-dock">
       <p class="control-dock__eyebrow">Kenttävalinta</p>
       <div class="control-dock__grid">

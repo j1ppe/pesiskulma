@@ -1,0 +1,91 @@
+{
+  "common": {
+    "appName": "PesisKulma",
+    "women": "Naiset",
+    "men": "Miehet",
+    "ok": "OK",
+    "cancel": "Peruuta",
+    "close": "Sulje",
+    "reset": "Reset",
+    "yes": "Kyllä",
+    "no": "Ei",
+    "units": {
+      "metric": "Metrinen",
+      "imperial": "Brittiläinen",
+      "cm": "cm",
+      "m": "m",
+      "ft": "ft",
+      "in": "tuumaa"
+    }
+  },
+  "navigation": {
+    "fieldSettings": "Kenttäasetukset",
+    "interactiveField": "Interaktiivinen kenttätyökalu"
+  },
+  "footer": {
+    "designedBy": "PesisKulma - Designed & Built by JiPPE"
+  },
+  "landing": {
+    "title": "PesisKulma",
+    "description": "Työkalu lyöntiharjoittelun avuksi: suunnittele verkkoon tai pressuun tehtävät lyönnit, hahmota etäisyydet ja lyöntisuunnat suoraan selaimessa.",
+    "openFieldTool": "Avaa kenttätyökalu",
+    "fieldMapTitle": "Kenttäkartta",
+    "fieldMapDescription": "Vertaile eri kenttäprofiileja ja tarkastele niiden mittoja. Piirrä omia mittalinjoja ja mittaa juoksu- tai heittoetäisyyksiä suoraan kentällä. Täsmällinen työkalu kentän analysointiin.",
+    "openFieldMap": "Avaa kenttäkartta"
+  },
+  "pesiskulma": {
+    "title": "PesisKulma",
+    "fieldSelection": "Kenttävalinta",
+    "netDistanceLabel": "Lyöntiverkon etäisyys syöttölautasen etureunasta",
+    "netDistancePlaceholder": "esim. 500",
+    "netDistanceUnit": "cm",
+    "pitchPlateTitle": "Syöttölautanen",
+    "pitchPlateHint": "Siirrä palloa asettaaksesi lyönnin lähtöpiste",
+    "pitchPlateReset": "Palauta keskelle",
+    "pitchPlateOpen": "Avaa syöttölautasen asetukset",
+    "measurements": {
+      "lateralDistance": "Etäisyys keskiviivasta osumakohtaan verkossa",
+      "totalDistance": "Kokonaisetäisyys syöttölautaselta kohteeseen",
+      "lateralFromCenter": "Etäisyys keskiviivasta sivusuunnassa"
+    }
+  },
+  "pesiskentta": {
+    "title": "PesisKenttä",
+    "subtitle": "Interaktiivinen kenttätyökalu",
+    "eyebrow": "Kenttäkartta",
+    "moreInfo": "Lisätietoja",
+    "description": "Vertaile eri kenttäprofiileja ja tarkastele niiden mittoja. Piirrä omia mittalinjoja ja mittaa juoksu- tai heittoetäisyyksiä suoraan kentällä. Täsmällinen työkalu kentän analysointiin.",
+    "resetEdits": "Palauta alkuperäiset arvot",
+    "clearChanges": "Tyhjennä muutokset",
+    "customMeasure": "Oma mitta",
+    "customMeasureActivate": "Aktivoi oma mitta -toiminto",
+    "debugSnap": "🎯 Debug Snap",
+    "debugSnapShow": "Näytä snap-pisteet debuggausta varten",
+    "dimensions": {
+      "title": "Keskeiset mitat",
+      "first": "Ykkösväli",
+      "second": "Kakkosväli",
+      "third": "Kolmosväli",
+      "diagonal": "Kotipolku",
+      "back": "Kentän pituus",
+      "width": "Kentän leveys"
+    },
+    "modal": {
+      "offsetTitle": "Syötä siirto metreissä",
+      "offsetDescription": "Anna etäisyys kolmospesän keskustasta kolmospesän viivaa pitkin",
+      "offsetPlaceholder": "esim. 2.50",
+      "confirmTitle": "Vahvistus"
+    }
+  },
+  "controls": {
+    "zoomIn": "Lähennä",
+    "zoomOut": "Loitonna",
+    "zoomReset": "Palauta näkymä",
+    "panMode": "Pan",
+    "panModeActivate": "Aktivoi pan-tila kentän siirtämiseen"
+  },
+  "meta": {
+    "ogTitle": "Pesiskulma",
+    "ogDescription": "Aputyökalu pesäpalloharjoitteluun."
+  }
+}

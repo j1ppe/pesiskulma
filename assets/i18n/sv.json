@@ -1,0 +1,91 @@
+{
+  "common": {
+    "appName": "PesisKulma",
+    "women": "Kvinnor",
+    "men": "Män",
+    "ok": "OK",
+    "cancel": "Avbryt",
+    "close": "Stäng",
+    "reset": "Återställ",
+    "yes": "Ja",
+    "no": "Nej",
+    "units": {
+      "metric": "Metriskt",
+      "imperial": "Brittiskt",
+      "cm": "cm",
+      "m": "m",
+      "ft": "ft",
+      "in": "tum"
+    }
+  },
+  "navigation": {
+    "fieldSettings": "Planinställningar",
+    "interactiveField": "Interaktivt planverktyg"
+  },
+  "footer": {
+    "designedBy": "PesisKulma - Designed & Built by JiPPE"
+  },
+  "landing": {
+    "title": "PesisKulma",
+    "description": "Ett verktyg för slagträning: planera dina slag till nätet eller presenningen, visualisera avstånd och vinklar direkt i din webbläsare.",
+    "openFieldTool": "Öppna planverktyget",
+    "fieldMapTitle": "Plankarta",
+    "fieldMapDescription": "Jämför olika planprofiler och granska deras mått. Rita egna mätlinjer och mät löpnings- eller kastavstånd direkt på planen. Ett precist verktyg för plananalys.",
+    "openFieldMap": "Öppna plankarta"
+  },
+  "pesiskulma": {
+    "title": "PesisKulma",
+    "fieldSelection": "Planval",
+    "netDistanceLabel": "Nätavstånd från fram kant av kastarplattan",
+    "netDistancePlaceholder": "t.ex. 500",
+    "netDistanceUnit": "cm",
+    "pitchPlateTitle": "Kastarplattan",
+    "pitchPlateHint": "Flytta bollen för att ställa in slagets startpunkt",
+    "pitchPlateReset": "Återställ till mitten",
+    "pitchPlateOpen": "Öppna kastarplattans inställningar",
+    "measurements": {
+      "lateralDistance": "Avstånd från mittlinjen till träffpunkt på nätet",
+      "totalDistance": "Totalt avstånd från kastarplattan till målet",
+      "lateralFromCenter": "Sidoavstånd från mittlinjen"
+    }
+  },
+  "pesiskentta": {
+    "title": "PesisKenttä",
+    "subtitle": "Interaktivt planverktyg",
+    "eyebrow": "Plankarta",
+    "moreInfo": "Mer information",
+    "description": "Jämför olika planprofiler och granska deras mått. Rita egna mätlinjer och mät löpnings- eller kastavstånd direkt på planen. Ett precist verktyg för plananalys.",
+    "resetEdits": "Återställ till ursprungliga värden",
+    "clearChanges": "Rensa ändringar",
+    "customMeasure": "Anpassat mått",
+    "customMeasureActivate": "Aktivera anpassad mätfunktion",
+    "debugSnap": "🎯 Debug Snap",
+    "debugSnapShow": "Visa snäppningspunkter för felsökning",
+    "dimensions": {
+      "title": "Viktiga mått",
+      "first": "Första",
+      "second": "Andra",
+      "third": "Tredje",
+      "diagonal": "Hemväg",
+      "back": "Planlängd",
+      "width": "Planbredd"
+    },
+    "modal": {
+      "offsetTitle": "Ange förskjutning i meter",
+      "offsetDescription": "Ange avstånd från tredje basens centrum längs tredje baslinjen",
+      "offsetPlaceholder": "t.ex. 2.50",
+      "confirmTitle": "Bekräftelse"
+    }
+  },
+  "controls": {
+    "zoomIn": "Zooma in",
+    "zoomOut": "Zooma ut",
+    "zoomReset": "Återställ vy",
+    "panMode": "Panorera",
+    "panModeActivate": "Aktivera panoreringsläge för att flytta planen"
+  },
+  "meta": {
+    "ogTitle": "Pesiskulma",
+    "ogDescription": "Ett träningsverktyg för finsk baseboll (pesäpallo)."
+  }
+}

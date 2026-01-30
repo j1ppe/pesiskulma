@@ -6,36 +6,149 @@
     <meta property="og:title" content="Pesiskulma" />
     <meta
       property="og:description"
-      content="Aputyökalu pesäpallon lyöntiharjoitteluun."
+      content="Selainpohjainen työkalupaketti pesäpallon lyöntiharjoitteluun ja kenttämittausten analysointiin"
     />
     <meta property="og:url" content="https://j1ppe.github.io/pesiskulma/" />
     <meta
       property="og:image"
-      content="https://j1ppe.github.io/pesiskulma/assets/images/social-preview.jpg"
+      content="https://j1ppe.github.io/pesiskulma/assets/images/social-preview.png"
     />
-    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:type" content="website" />
     <title>PesisKulma</title>
     <link
       rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2390EE90'/><circle cx='50' cy='50' r='45' fill='none' stroke='%23333' stroke-width='2'/><path d='M 20,50 Q 50,20 80,50' fill='none' stroke='%23333' stroke-width='1.5'/><path d='M 20,50 Q 50,80 80,50' fill='none' stroke='%23333' stroke-width='1.5'/><path d='M 50,20 Q 20,50 50,80' fill='none' stroke='%23333' stroke-width='1.5'/><path d='M 50,20 Q 80,50 50,80' fill='none' stroke='%23333' stroke-width='1.5'/></svg>"
+      type="image/png"
+      href="assets/images/pesiskulma-logo.png"
     />
     <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/units.js"></script>
+    <script src="assets/js/i18n.js"></script>
     <script src="assets/js/footer.js" defer></script>
   </head>
   <body>
-    <div class="hero-card">
-      <h2 class="hero-title">PesisKulma</h2>
-      <p class="hero-description">
-        Työkalu lyöntiharjoittelun avuksi: suunnittele verkkoon tai pressuun
-        tehtävät lyönnit, hahmota etäisyydet ja lyöntisuunnat suoraan
-        selaimessa.
-      </p>
-      <a class="hero-button" href="PesisKulma.html">Avaa kenttätyökalu</a>
+    <!-- Language Selector -->
+    <div class="language-selector">
+      <button
+        class="unit-toggle"
+        id="unitToggle"
+        title="Toggle measurement units"
+      >
+        <span class="unit-icon"><span style="font-size: 18px">📐</span> m</span>
+      </button>
+      <button class="language-toggle" id="languageToggle">
+        <span class="globe-icon">🌐</span><span class="lang-code">FI</span>
+      </button>
+      <div class="language-dropdown" id="languageDropdown">
+        <button class="language-button active" data-lang="fi">
+          <span class="language-flag"
+            ><img
+              src="https://flagcdn.com/w20/fi.png"
+              alt="FI"
+              width="20"
+              height="15"
+          /></span>
+          <span class="language-name">Suomi</span>
+        </button>
+        <button class="language-button" data-lang="en">
+          <span class="language-flag"
+            ><img
+              src="https://flagcdn.com/w20/gb.png"
+              alt="GB"
+              width="20"
+              height="15"
+          /></span>
+          <span class="language-name">English</span>
+        </button>
+        <button class="language-button" data-lang="sv">
+          <span class="language-flag"
+            ><img
+              src="https://flagcdn.com/w20/se.png"
+              alt="SE"
+              width="20"
+              height="15"
+          /></span>
+          <span class="language-name">Svenska</span>
+        </button>
+      </div>
     </div>
 
+    <!-- Desktop hero (min-width: 769px) -->
+    <main class="hero-landing" role="main">
+      <img
+        class="hero-landing__bg"
+        src="assets/images/background.png"
+        alt=""
+        aria-hidden="true"
+      />
+
+      <div class="hero-landing__stage">
+        <!-- Vasen puhelin -->
+        <img
+          class="hero-landing__mobile hero-landing__mobile--left"
+          src="assets/images/mobile1.png"
+          alt="Kenttäasetukset"
+          data-page="PesisKulma.html"
+          tabindex="0"
+          role="button"
+        />
+
+        <!-- Keskellä logo -->
+        <div class="hero-landing__center">
+          <img
+            class="hero-landing__logo"
+            src="assets/images/pesiskulma-logo.png"
+            alt="PesisKulma"
+          />
+        </div>
+
+        <!-- Oikea puhelin -->
+        <img
+          class="hero-landing__mobile hero-landing__mobile--right"
+          src="assets/images/mobile2.png"
+          alt="Interaktiivinen kenttätyökalu"
+          data-page="PesisKentta.html"
+          tabindex="0"
+          role="button"
+        />
+      </div>
+    </main>
+
+    <!-- Mobile hero (max-width: 768px) -->
+    <div class="hero-logo-mobile">
+      <img src="assets/images/pesiskulma-logo.png" alt="PesisKulma" />
+    </div>
+    <main class="hero-grid">
+      <article class="hero-card">
+        <h2 class="hero-title" data-i18n="common.appName">PesisKulma</h2>
+        <p class="hero-description" data-i18n="landing.description">
+          Työkalu lyöntiharjoittelun avuksi: suunnittele verkkoon tai pressuun
+          tehtävät lyönnit, hahmota etäisyydet ja lyöntisuunnat suoraan
+          selaimessa.
+        </p>
+        <a class="hero-button hero-button--secondary" href="PesisKulma.html"
+          ><span data-i18n="landing.openFieldTool">Avaa kenttätyökalu</span></a
+        >
+      </article>
+
+      <article class="hero-card hero-card--outline">
+        <h2 class="hero-title" data-i18n="landing.fieldMapTitle">
+          Kenttäkartta
+        </h2>
+        <p class="hero-description" data-i18n="landing.fieldMapDescription">
+          Vertaile eri kenttäprofiileja ja tarkastele niiden mittoja. Piirrä
+          omia mittalinjoja ja mittaa juoksu- tai heittoetäisyyksiä suoraan
+          kentällä. Täsmällinen työkalu kentän analysointiin.
+        </p>
+        <a class="hero-button hero-button--secondary" href="PesisKentta.html"
+          ><span data-i18n="landing.openFieldMap">Avaa kenttäkartta</span></a
+        >
+      </article>
+    </main>
+
     <footer class="site-footer" data-footer></footer>
+    <script src="assets/js/landing.js"></script>
   </body>
 </html>

@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PesisKenttä</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="assets/images/pesiskulma-logo.png"
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/units.js"></script>
+    <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/main.js" type="module"></script>
+    <script src="assets/js/footer.js" defer></script>
+  </head>
+  <body class="page--field page--fullfield">
+    <!-- Language Selector -->
+    <div class="language-selector">
+      <button
+        class="unit-toggle"
+        id="unitToggle"
+        title="Toggle measurement units"
+      >
+        <span class="unit-icon"><span style="font-size: 18px">📐</span> m</span>
+      </button>
+      <button class="language-toggle" id="languageToggle">
+        <span class="globe-icon">🌐</span><span class="lang-code">FI</span>
+      </button>
+      <div class="language-dropdown" id="languageDropdown">
+        <button class="language-button active" data-lang="fi">
+          <span class="language-flag"
+            ><img
+              src="https://flagcdn.com/w20/fi.png"
+              alt="FI"
+              width="20"
+              height="15"
+          /></span>
+          <span class="language-name">Suomi</span>
+        </button>
+        <button class="language-button" data-lang="en">
+          <span class="language-flag"
+            ><img
+              src="https://flagcdn.com/w20/gb.png"
+              alt="GB"
+              width="20"
+              height="15"
+          /></span>
+          <span class="language-name">English</span>
+        </button>
+        <button class="language-button" data-lang="sv">
+          <span class="language-flag"
+            ><img
+              src="https://flagcdn.com/w20/se.png"
+              alt="SE"
+              width="20"
+              height="15"
+          /></span>
+          <span class="language-name">Svenska</span>
+        </button>
+      </div>
+    </div>
+
+    <section class="fullfield-header">
+      <p class="fullfield-eyebrow" data-i18n="pesiskentta.eyebrow">
+        Kenttäkartta
+      </p>
+      <h1 data-i18n="pesiskentta.subtitle">Interaktiivinen kenttätyökalu</h1>
+      <button
+        class="fullfield-info-toggle"
+        id="infoToggle"
+        aria-expanded="false"
+      >
+        <span class="info-icon">ⓘ</span>
+        <span data-i18n="pesiskentta.moreInfo">Lisätietoja</span>
+      </button>
+      <p
+        class="fullfield-copy"
+        id="infoCopy"
+        data-i18n="pesiskentta.description"
+      >
+        Vertaile eri kenttäprofiileja ja tarkastele niiden mittoja. Piirrä omia
+        mittalinjoja ja mittaa juoksu- tai heittoetäisyyksiä suoraan kentällä.
+        Täsmällinen työkalu kentän analysointiin.
+      </p>
+      <div class="fullfield-selector">
+        <div class="field-selector">
+          <button
+            class="field-option active"
+            data-fullfield="women"
+            data-i18n="common.women"
+          >
+            Naiset
+          </button>
+          <button
+            class="field-option"
+            data-fullfield="men"
+            data-i18n="common.men"
+          >
+            Miehet
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="fullfield-canvas-wrap">
+      <button
+        class="reset-edits"
+        id="resetEdits"
+        data-i18n-title="pesiskentta.resetEdits"
+        style="display: none"
+        data-i18n-aria="pesiskentta.clearChanges"
+      ></button>
+
+      <!-- Zoom controls -->
+      <div class="zoom-controls" id="zoomControls">
+        <button
+          class="zoom-btn zoom-out"
+          id="zoomOut"
+          data-i18n-title="controls.zoomOut"
+          data-i18n-aria="controls.zoomOut"
+        ></button>
+        <span class="zoom-level" id="zoomLevel">100%</span>
+        <button
+          class="zoom-btn zoom-reset"
+          id="zoomReset"
+          data-i18n-title="controls.zoomReset"
+          data-i18n-aria="controls.zoomReset"
+        ></button>
+        <button
+          class="zoom-btn zoom-in"
+          id="zoomIn"
+          data-i18n-title="controls.zoomIn"
+          data-i18n-aria="controls.zoomIn"
+        ></button>
+      </div>
+
+      <!-- Custom measurement toggle -->
+      <button
+        class="custom-measure-toggle"
+        id="customMeasureToggle"
+        data-i18n-title="pesiskentta.customMeasure"
+        data-i18n-aria="pesiskentta.customMeasureActivate"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0z"
+          ></path>
+          <path d="m14.5 12.5 2-2"></path>
+          <path d="m11.5 9.5 2-2"></path>
+          <path d="m8.5 6.5 2-2"></path>
+          <path d="m17.5 15.5 2-2"></path>
+        </svg>
+        <span data-i18n="pesiskentta.customMeasure">Oma mitta</span>
+      </button>
+
+      <!-- Debug snap points toggle -->
+      <button
+        class="debug-snap-toggle"
+        id="debugSnapToggle"
+        data-i18n-title="pesiskentta.debugSnapShow"
+        data-i18n-aria="pesiskentta.debugSnapShow"
+      >
+        <span data-i18n="pesiskentta.debugSnap">🎯 Debug Snap</span>
+      </button>
+
+      <canvas id="fullFieldCanvas"></canvas>
+      <div id="measurementTooltip" class="measurement-tooltip"></div>
+    </section>
+
+    <!-- Offset input modal -->
+    <div id="offsetModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 data-i18n="pesiskentta.modal.offsetTitle">
+          Syötä siirto metreissä
+        </h3>
+        <p
+          class="modal-description"
+          data-i18n="pesiskentta.modal.offsetDescription"
+        >
+          Anna etäisyys kolmospesan keskustasta kolmospesan viivaa pitkin
+        </p>
+        <input
+          type="number"
+          id="offsetInput"
+          step="0.01"
+          min="0"
+          max="20"
+          data-i18n-placeholder="pesiskentta.modal.offsetPlaceholder"
+        />
+        <div class="modal-buttons">
+          <button
+            id="offsetCancel"
+            class="modal-button modal-button-cancel"
+            data-i18n="common.cancel"
+          >
+            Peruuta
+          </button>
+          <button
+            id="offsetOk"
+            class="modal-button modal-button-ok"
+            data-i18n="common.ok"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm/Alert modal -->
+    <div id="confirmModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 id="confirmTitle" data-i18n="pesiskentta.modal.confirmTitle">
+          Vahvistus
+        </h3>
+        <p id="confirmMessage" class="modal-description"></p>
+        <div class="modal-buttons" id="confirmButtons">
+          <button
+            id="confirmCancel"
+            class="modal-button modal-button-cancel"
+            data-i18n="common.cancel"
+          >
+            Peruuta
+          </button>
+          <button
+            id="confirmOk"
+            class="modal-button modal-button-ok"
+            data-i18n="common.ok"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <section class="fullfield-legend">
+      <h2 data-i18n="pesiskentta.dimensions.title">Keskeiset mitat</h2>
+      <ul class="fullfield-dimensions">
+        <li>
+          <span data-i18n="pesiskentta.dimensions.first">Ykkösväli</span>
+          <strong data-dimension="first">-</strong>
+        </li>
+        <li>
+          <span data-i18n="pesiskentta.dimensions.second">Kakkosväli</span>
+          <strong data-dimension="second">-</strong>
+        </li>
+        <li>
+          <span data-i18n="pesiskentta.dimensions.third">Kolmosväli</span>
+          <strong data-dimension="third">-</strong>
+        </li>
+        <li>
+          <span data-i18n="pesiskentta.dimensions.diagonal">Kotipolku</span>
+          <strong data-dimension="diagonal">-</strong>
+        </li>
+        <li>
+          <span data-i18n="pesiskentta.dimensions.back">Kentän pituus</span>
+          <strong data-dimension="back">-</strong>
+        </li>
+        <li>
+          <span data-i18n="pesiskentta.dimensions.width">Kentän leveys</span>
+          <strong data-dimension="width">-</strong>
+        </li>
+      </ul>
+    </section>
+
+    <footer class="site-footer" data-footer></footer>
+  </body>
+</html>

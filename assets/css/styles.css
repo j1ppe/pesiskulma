@@ -1357,6 +1357,10 @@ canvas {
   line-height: 1.4;
 }
 
+.unit-icon-symbol {
+  font-size: 18px;
+}
+
 .fullfield-legend {
   max-width: 960px;
   margin: 0 auto 80px;

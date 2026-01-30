@@ -39,13 +39,21 @@ const i18n = {
    */
   async loadLanguage(lang) {
     try {
-      const response = await fetch(`./assets/i18n/${lang}.json`);
-      if (!response.ok) throw new Error(`Failed to load ${lang}.json`);
+      const url = `./assets/i18n/${lang}.json`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to load ${lang}.json from ${url}: ${response.status} ${response.statusText}`,
+        );
+      }
       this.translations = await response.json();
       this.currentLanguage = lang;
       localStorage.setItem("language", lang);
     } catch (error) {
-      console.error(`Failed to load language ${lang}:`, error);
+      console.error(
+        `Failed to load language ${lang} from ./assets/i18n/${lang}.json: ${error && error.message ? error.message : error}`,
+        error,
+      );
       // Fallback to Finnish if loading fails
       if (lang !== "fi") {
         await this.loadLanguage("fi");

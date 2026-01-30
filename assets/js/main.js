@@ -399,18 +399,25 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   };
 
   /**
+   * Compare two points for equality within a tolerance.
+   * @param {{x: number, y: number}} p1
+   * @param {{x: number, y: number}} p2
+   * @param {number} [tolerance=0.01]
+   * @returns {boolean}
+   */
+  const pointsEqual = (p1, p2, tolerance = 0.01) => {
+    return (
+      Math.abs(p1.x - p2.x) < tolerance && Math.abs(p1.y - p2.y) < tolerance
+    );
+  };
+
+  /**
    * Calculate connected measurements and total distance
    * @param {Object} measurement - Single measurement
    * @param {Array} allMeasurements - All custom measurements
    * @returns {{connectedCount: number, totalDistance: number}} Connection info
    */
   const getConnectedMeasurementsInfo = (measurement, allMeasurements) => {
-    const pointsEqual = (p1, p2, tolerance = 0.01) => {
-      return (
-        Math.abs(p1.x - p2.x) < tolerance && Math.abs(p1.y - p2.y) < tolerance
-      );
-    };
-
     // Find all measurements connected to this one
     const visited = new Set();
     const toVisit = [measurement.id];

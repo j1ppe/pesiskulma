@@ -9,6 +9,7 @@
     "reset": "Återställ",
     "yes": "Ja",
     "no": "Nej",
+    "toggleUnits": "Växla måttenheter",
     "units": {
       "metric": "Metriskt",
       "imperial": "Brittiskt",
@@ -65,11 +66,21 @@
     "dimensions": {
       "title": "Viktiga mått",
       "first": "Första",
+      "firstDesc": "Avstånd från hemlinjen till första basen",
       "second": "Andra",
+      "secondDesc": "Avstånd från första basen till andra basen",
       "third": "Tredje",
+      "thirdDesc": "Avstånd från andra basen till tredje basen",
       "diagonal": "Hemväg",
+      "diagonalParts": "Till flagga {0}<br>Till hem {1}",
       "back": "Planlängd",
-      "width": "Planbredd"
+      "backDesc": "Planlängd från hemlinjen till bakre gränsen",
+      "width": "Planbredd",
+      "widthDesc": "Planbredd vid bakre gränsen",
+      "frontArc": "Frambåge",
+      "frontArcDesc": "Avstånd från kastarplattans kant till frambågens ytterkant",
+      "offset": "Förskjutning",
+      "offsetDesc": "Avstånd från bashörn"
     },
     "modal": {
       "offsetTitle": "Ange förskjutning i meter",

@@ -9,6 +9,7 @@
     "reset": "Reset",
     "yes": "Yes",
     "no": "No",
+    "toggleUnits": "Toggle measurement units",
     "units": {
       "metric": "Metric",
       "imperial": "Imperial",
@@ -65,11 +66,21 @@
     "dimensions": {
       "title": "Key Measurements",
       "first": "First base",
+      "firstDesc": "Distance from home line to first base",
       "second": "Second base",
+      "secondDesc": "Distance from first base to second base",
       "third": "Third base",
+      "thirdDesc": "Distance from second base to third base",
       "diagonal": "Home path",
+      "diagonalParts": "To flag {0}<br>To home {1}",
       "back": "Field length",
-      "width": "Field width"
+      "backDesc": "Field length from home line to back boundary",
+      "width": "Field width",
+      "widthDesc": "Field width at back boundary",
+      "frontArc": "Front arc",
+      "frontArcDesc": "Distance from pitcher's plate edge to front arc outer edge",
+      "offset": "Offset",
+      "offsetDesc": "Distance from base corner"
     },
     "modal": {
       "offsetTitle": "Enter offset in metres",

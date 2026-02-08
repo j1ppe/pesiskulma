@@ -430,7 +430,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
             padding: 4,
             tooltipData: {
               value: formatDistance(distanceM),
-              description: "Etäisyys keskiviivasta osumakohtaan verkossa",
+              description: i18n.t("pesiskulma.measurements.lateralDistance"),
             },
             measurementHitAreas,
           });
@@ -472,7 +472,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         padding: 4,
         tooltipData: {
           value: formatDistance(plateDistanceM),
-          description: "Kokonaisetäisyys syöttölautaselta kohteeseen",
+          description: i18n.t("pesiskulma.measurements.totalDistance"),
         },
         measurementHitAreas,
       });
@@ -494,7 +494,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         padding: 4,
         tooltipData: {
           value: formatDistance(ballSideDistanceM),
-          description: "Etäisyys keskiviivasta sivusuunnassa",
+          description: i18n.t("pesiskulma.measurements.lateralFromCenter"),
         },
         measurementHitAreas,
       });
@@ -1429,6 +1429,7 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   // Listen for language changes and update unit label
   window.addEventListener("languageChanged", () => {
     updateNetDistanceUnit();
+    drawField();
   });
 
   /**

@@ -717,13 +717,13 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         pointA: geometry.homeLeft,
         pointB: geometry.firstBaseCenter,
         distance: geometry.measurements.first,
-        label: "Ykkösväli",
+        label: i18n.t("pesiskentta.dimensions.first"),
         offset: 0,
         side: "on-line",
         labelOffsetPx: 15,
         tooltipData: {
           value: formatMeters(geometry.measurements.first),
-          description: "Etäisyys kotipesäviivasta ensimmäiseen pesään",
+          description: i18n.t("pesiskentta.dimensions.firstDesc"),
         },
       });
 
@@ -732,13 +732,13 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         pointA: geometry.basePathSegments.firstToSecond.start,
         pointB: geometry.basePathSegments.firstToSecond.end,
         distance: geometry.measurements.second,
-        label: "Kakkosväli",
+        label: i18n.t("pesiskentta.dimensions.second"),
         offset: 0,
         side: "on-line",
         labelOffsetPx: 0,
         tooltipData: {
           value: formatMeters(geometry.measurements.second),
-          description: "Etäisyys ensimmäisestä pesästä toiseen pesään",
+          description: i18n.t("pesiskentta.dimensions.secondDesc"),
         },
       });
 
@@ -747,13 +747,13 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         pointA: geometry.basePathSegments.secondToThird.start,
         pointB: geometry.basePathSegments.secondToThird.end,
         distance: geometry.measurements.third,
-        label: "Kolmosväli",
+        label: i18n.t("pesiskentta.dimensions.third"),
         offset: 0,
         side: "on-line",
         labelOffsetPx: 0,
         tooltipData: {
           value: formatMeters(geometry.measurements.third),
-          description: "Etäisyys toisesta pesästä kolmanteen pesään",
+          description: i18n.t("pesiskentta.dimensions.thirdDesc"),
         },
       });
 
@@ -771,13 +771,13 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
           y: backLineY,
         },
         distance: geometry.measurements.back,
-        label: "Kentän pituus",
+        label: i18n.t("pesiskentta.dimensions.back"),
         offset: 0,
         side: "vertical",
         labelOffsetPx: 0,
         tooltipData: {
           value: formatMeters(geometry.measurements.back),
-          description: "Kentän pituus kotipesäviivasta takarajaan",
+          description: i18n.t("pesiskentta.dimensions.backDesc"),
         },
       });
 
@@ -787,13 +787,13 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         pointA: { x: -halfWidth, y: backLineY - 12 },
         pointB: { x: halfWidth, y: backLineY - 12 },
         distance: geometry.measurements.width,
-        label: "Kentän leveys",
+        label: i18n.t("pesiskentta.dimensions.width"),
         offset: 0,
         side: "horizontal",
         labelOffsetPx: 0,
         tooltipData: {
           value: formatMeters(geometry.measurements.width),
-          description: "Kentän leveys takarajalla",
+          description: i18n.t("pesiskentta.dimensions.widthDesc"),
         },
       });
 
@@ -805,14 +805,13 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         pointA: { x: 0, y: plateRadius },
         pointB: { x: 0, y: frontArcRadius },
         distance: frontArcDistance,
-        label: "Etukaari",
+        label: i18n.t("pesiskentta.dimensions.frontArc"),
         offset: 0,
         side: "vertical",
         labelOffsetPx: 0,
         tooltipData: {
           value: formatMeters(frontArcDistance),
-          description:
-            "Etäisyys syöttölautasen etureunasta etukaaren ulkolaitaan",
+          description: i18n.t("pesiskentta.dimensions.frontArcDesc"),
         },
       });
 
@@ -831,13 +830,16 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         pointA: geometry.homePathFirstLine.start,
         pointB: geometry.homePathFirstLine.end,
         distance: firstSegmentLength,
-        label: "Kotipolku",
+        label: i18n.t("pesiskentta.dimensions.diagonal"),
         offset: 0,
         side: "on-line",
         labelOffsetPx: -15,
         tooltipData: {
           value: formatMeters(geometry.measurements.diagonal),
-          description: `Lipulle ${formatMeters(firstSegmentLength)}<br>Kotipesään ${formatMeters(secondSegmentLength)}`,
+          description: i18n
+            .t("pesiskentta.dimensions.diagonalParts")
+            .replace("{0}", formatMeters(firstSegmentLength))
+            .replace("{1}", formatMeters(secondSegmentLength)),
         },
       });
 
@@ -845,13 +847,16 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
         pointA: geometry.homePathSecondLine.start,
         pointB: geometry.homePathSecondLine.end,
         distance: secondSegmentLength,
-        label: "Kotipolku",
+        label: i18n.t("pesiskentta.dimensions.diagonal"),
         offset: 0,
         side: "on-line",
         labelOffsetPx: -15,
         tooltipData: {
           value: formatMeters(geometry.measurements.diagonal),
-          description: `Lipulle ${formatMeters(firstSegmentLength)}<br>Kotipesään ${formatMeters(secondSegmentLength)}`,
+          description: i18n
+            .t("pesiskentta.dimensions.diagonalParts")
+            .replace("{0}", formatMeters(firstSegmentLength))
+            .replace("{1}", formatMeters(secondSegmentLength)),
         },
       });
 
@@ -867,12 +872,12 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
             pointA: geometry.originalHomePathFirstLine.start,
             pointB: geometry.homePathFirstLine.start,
             distance: offsetDistance,
-            label: "Siirto",
+            label: i18n.t("pesiskentta.dimensions.offset"),
             offset: 3.0,
             side: "bottom",
             tooltipData: {
               value: formatMeters(offsetDistance),
-              description: "Etäisyys pesän kulmasta",
+              description: i18n.t("pesiskentta.dimensions.offsetDesc"),
             },
             color: "#ff9500",
             textColor: "#ff9500",
@@ -2096,6 +2101,15 @@ import { fieldProfileMen, fieldProfileWomen, store } from "./modules/state.js";
   // Listen for unit system changes and redraw
   window.addEventListener("unitChanged", () => {
     console.log("unitChanged event received in main.js, triggering redraw...");
+    if (window.drawFieldMain) {
+      window.drawFieldMain();
+    }
+  });
+
+  window.addEventListener("languageChanged", () => {
+    console.log(
+      "languageChanged event received in main.js, triggering redraw...",
+    );
     if (window.drawFieldMain) {
       window.drawFieldMain();
     }

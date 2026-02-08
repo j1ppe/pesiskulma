@@ -23,7 +23,8 @@
     "interactiveField": "Interactive Field Tool"
   },
   "footer": {
-    "designedBy": "PesisKulma - Designed & Built by JiPPE"
+    "designedBy": "PesisKulma - Designed & Built by JiPPE",
+    "privacyNotice": "This site uses Google Analytics to collect anonymous usage statistics."
   },
   "landing": {
     "title": "PesisKulma",

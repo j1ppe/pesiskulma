@@ -23,7 +23,8 @@
     "interactiveField": "Interaktivt planverktyg"
   },
   "footer": {
-    "designedBy": "PesisKulma - Designed & Built by JiPPE"
+    "designedBy": "PesisKulma - Designed & Built by JiPPE",
+    "privacyNotice": "Denna webbplats använder Google Analytics för att samla anonym användningsstatistik."
   },
   "landing": {
     "title": "PesisKulma",

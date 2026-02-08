@@ -2,10 +2,13 @@
   const FOOTER_BADGE = "assets/images/jippe-logo.png";
 
   const FOOTER_HTML = `
-    <p>
-      <img class="footer-badge" alt="PesisKulma-logo" src="${FOOTER_BADGE}" />
-      PesisKulma - Designed & Built by JiPPE
-    </p>
+    <div class="footer-content">
+      <p class="footer-main">
+        <img class="footer-badge" alt="PesisKulma-logo" src="${FOOTER_BADGE}" />
+        <span data-i18n="footer.designedBy">PesisKulma - Designed & Built by JiPPE</span>
+      </p>
+      <p class="footer-privacy" data-i18n="footer.privacyNotice">This site uses Google Analytics to collect anonymous usage statistics.</p>
+    </div>
   `;
 
   function renderFooter() {

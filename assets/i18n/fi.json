@@ -23,7 +23,8 @@
     "interactiveField": "Interaktiivinen kenttätyökalu"
   },
   "footer": {
-    "designedBy": "PesisKulma - Designed & Built by JiPPE"
+    "designedBy": "PesisKulma - Designed & Built by JiPPE",
+    "privacyNotice": "Tämä sivusto käyttää Google Analyticsia keräämään anonyymejä käyttötilastoja."
   },
   "landing": {
     "title": "PesisKulma",

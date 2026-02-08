@@ -1442,6 +1442,14 @@ body.page--field footer {
   right: 0;
 }
 
+.footer-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 footer p {
   display: inline-flex;
   align-items: center;
@@ -1451,6 +1459,23 @@ footer p {
   color: rgba(255, 255, 255, 0.6);
   margin: 0;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.footer-main {
+  /* Main footer text stays centered */
+}
+
+@media (min-width: 768px) {
+  .footer-content {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .footer-privacy {
+    position: absolute !important;
+    right: 20px;
+    bottom: 0;
+  }
 }
 
 /* Desktop font size adjustments */
@@ -1510,6 +1535,11 @@ footer p {
   height: 28px;
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.footer-privacy {
+  font-size: 11px !important;
+  color: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Modal styles */

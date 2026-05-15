@@ -9,6 +9,7 @@
     "reset": "Reset",
     "yes": "Kyllä",
     "no": "Ei",
+    "toggleUnits": "Vaihda mittayksiköitä",
     "units": {
       "metric": "Metrinen",
       "imperial": "Brittiläinen",
@@ -65,11 +66,21 @@
     "dimensions": {
       "title": "Keskeiset mitat",
       "first": "Ykkösväli",
+      "firstDesc": "Etäisyys kotipesäviivasta ensimmäiseen pesään",
       "second": "Kakkosväli",
+      "secondDesc": "Etäisyys ensimmäisestä pesästä toiseen pesään",
       "third": "Kolmosväli",
+      "thirdDesc": "Etäisyys toisesta pesästä kolmanteen pesään",
       "diagonal": "Kotipolku",
+      "diagonalParts": "Lipulle {0}<br>Kotipesään {1}",
       "back": "Kentän pituus",
-      "width": "Kentän leveys"
+      "backDesc": "Kentän pituus kotipesäviivasta takarajaan",
+      "width": "Kentän leveys",
+      "widthDesc": "Kentän leveys takarajalla",
+      "frontArc": "Etukaari",
+      "frontArcDesc": "Etäisyys syöttölautasen etureunasta etukaaren ulkolaitaan",
+      "offset": "Siirto",
+      "offsetDesc": "Etäisyys pesän kulmasta"
     },
     "modal": {
       "offsetTitle": "Syötä siirto metreissä",

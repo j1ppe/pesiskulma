@@ -306,9 +306,12 @@ export const calculateGeometry = (fieldProfile, editablePoints, scale = 1) => {
     },
     homePathMid: editablePoints.homePathMid || {
       ...originalHomePathFirstLine.end,
+      x: originalHomePathFirstLine.end.x - 0.3,
+      y: originalHomePathFirstLine.end.y - 1.5,
     },
     homePathEnd: editablePoints.homePathEnd || {
       ...originalHomePathSecondLine.end,
+      x: -7,
     },
   };
 

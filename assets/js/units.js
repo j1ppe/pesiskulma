@@ -124,7 +124,9 @@ class UnitSystem {
       const feet = this.metersToFeet(meters);
       return includeUnit ? `${feet.toFixed(1)} ft` : feet.toFixed(1);
     }
-    const formatted = Number.isInteger(meters) ? `${meters}` : meters.toFixed(3);
+    const formatted = Number.isInteger(meters)
+      ? `${meters}`
+      : meters.toFixed(3);
     return includeUnit ? `${formatted} m` : formatted;
   }
 

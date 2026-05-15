@@ -177,8 +177,8 @@ export const formatMeters = (value) => {
   }
 
   // Metric formatting (default)
-  const rounded = Math.round(value * 10) / 10;
-  return Number.isInteger(rounded) ? `${rounded} m` : `${rounded.toFixed(1)} m`;
+  const rounded = Math.round(value * 1000) / 1000;
+  return Number.isInteger(rounded) ? `${rounded} m` : `${rounded.toFixed(3)} m`;
 };
 
 /**

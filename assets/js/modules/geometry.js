@@ -177,8 +177,8 @@ export const formatMeters = (value) => {
   }
 
   // Metric formatting (default)
-  const rounded = Math.round(value * 10) / 10;
-  return Number.isInteger(rounded) ? `${rounded} m` : `${rounded.toFixed(1)} m`;
+  const rounded = Math.round(value * 1000) / 1000;
+  return Number.isInteger(rounded) ? `${rounded} m` : `${rounded.toFixed(3)} m`;
 };
 
 /**
@@ -306,9 +306,12 @@ export const calculateGeometry = (fieldProfile, editablePoints, scale = 1) => {
     },
     homePathMid: editablePoints.homePathMid || {
       ...originalHomePathFirstLine.end,
+      x: originalHomePathFirstLine.end.x - 0.3,
+      y: originalHomePathFirstLine.end.y - 1.5,
     },
     homePathEnd: editablePoints.homePathEnd || {
       ...originalHomePathSecondLine.end,
+      x: -7,
     },
   };
 

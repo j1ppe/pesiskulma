@@ -108,7 +108,10 @@ class UnitSystem {
   formatCm(cm, includeUnit = true) {
     if (this.currentUnit === "imperial") {
       const inches = this.cmToInches(cm);
-      return includeUnit ? `${inches.toFixed(1)}"` : inches.toFixed(1);
+      const formatted = Number.isInteger(inches)
+        ? `${inches}`
+        : inches.toFixed(3);
+      return includeUnit ? `${formatted}"` : formatted;
     }
     return includeUnit ? `${cm.toFixed(1)} cm` : cm.toFixed(1);
   }
@@ -122,9 +125,15 @@ class UnitSystem {
   formatMeters(meters, includeUnit = true) {
     if (this.currentUnit === "imperial") {
       const feet = this.metersToFeet(meters);
-      return includeUnit ? `${feet.toFixed(1)} ft` : feet.toFixed(1);
+      const formattedFeet = Number.isInteger(feet)
+        ? `${feet}`
+        : feet.toFixed(3);
+      return includeUnit ? `${formattedFeet} ft` : formattedFeet;
     }
-    return includeUnit ? `${meters.toFixed(2)} m` : meters.toFixed(2);
+    const formatted = Number.isInteger(meters)
+      ? `${meters}`
+      : meters.toFixed(3);
+    return includeUnit ? `${formatted} m` : formatted;
   }
 
   /**

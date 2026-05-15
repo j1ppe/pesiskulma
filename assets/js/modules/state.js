@@ -52,8 +52,8 @@ export const fieldProfileMen = {
   },
   battingSector: {
     originOffsetY: -0.569,
-    leftAngleDeg: -32.0,
-    rightAngleDeg: 32.0,
+    leftAngleDeg: -31.800404,
+    rightAngleDeg: 31.800404,
   },
   diagonalLines: {
     lengthFromHomeLine: 32.0,
@@ -94,11 +94,11 @@ export const fieldProfileWomen = {
   },
   battingSector: {
     originOffsetY: -0.569,
-    leftAngleDeg: -32.0,
-    rightAngleDeg: 32.0,
+    leftAngleDeg: -31.800404,
+    rightAngleDeg: 31.800404,
   },
   diagonalLines: {
-    lengthFromHomeLine: 27.162,
+    lengthFromHomeLine: 27.161571,
   },
   backBoundary: {
     distanceFromHomeLine: 82.0,
